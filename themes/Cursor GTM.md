@@ -47,7 +47,7 @@ const core = {
 
 ### Secondary palette
 
-From Cursor Brand Guidelines — vibrant accents for charts, callouts, and section color.
+From Cursor Brand Guidelines — vibrant accents for **non-text visuals only** (charts, diagrams, icons, shape fills). See **Color rules** below — never use these for text color or text highlighting.
 
 | Token          | Hex       | Notes          |
 | -------------- | --------- | -------------- |
@@ -77,6 +77,37 @@ const secondary = {
   pink: '#fc77bf',
   red: '#dc322f',
 } as const;
+```
+
+## Color rules
+
+**No secondary palette on text.** GTM decks must not use the secondary palette (Cursor Orange, Salmon, Brown, Olive, Green, Sky, Blue, Lavender, Pink, Red) for:
+
+- Text **color** on headlines, body copy, labels, or captions
+- Text **highlighting** — no `backgroundColor`, `<mark>`, highlighted spans, or colored pills behind words
+- “Emphasis” tricks — if everything is highlighted, nothing is
+
+**Core greys only for type.** Set text with the **core** palette:
+
+| Use            | Token      | Hex       |
+| -------------- | ---------- | --------- |
+| Primary copy   | offWhite   | `#edece8` |
+| Secondary line | midGray    | `#8e8e8b` |
+| Tertiary / dim | lightGray  | `#cccac4` |
+| Footer / meta  | midGray    | `#8e8e8b` |
+
+Title slides: offWhite headline + midGray subline (see Title Block). Section labels and bullets use midGray or lightGray — not Sky, Orange, etc.
+
+**Where secondary is allowed:** chart bars, line strokes, icon fills, diagram nodes, decorative rules — elements that are **not** typography. Keep shapes off text; do not place colored blocks behind copy.
+
+```tsx
+// Allowed — grey type hierarchy
+<p style={{ ...deckType('super'), color: core.offWhite }}>The World Cup</p>
+<p style={{ ...deckType('super'), color: core.midGray }}>Every four years</p>
+
+// Forbidden — colorful text or highlight
+<p style={{ color: secondary.sky }}>Section label</p>
+<span style={{ backgroundColor: secondary.cursorOrange }}>highlighted</span>
 ```
 
 ## Typography
@@ -233,7 +264,7 @@ Static. No entrance animations on GTM decks unless explicitly requested.
 
 ## Aesthetic
 
-Minimal dark-mode editorial. Off-black field, off-white type, muted grey for secondary lines. Cursor Gothic only. No gradients, no rounded cards, no decorative emoji. Generous negative space. Title slides: Super headline + optional muted subline + logo lockup only.
+Minimal dark-mode editorial. Off-black field, off-white type, muted grey for secondary lines. **Core greys only on text — no secondary palette for type or highlights.** Cursor Gothic only. No gradients, no rounded cards, no decorative emoji. Generous negative space. Title slides: Super headline + optional muted subline + logo lockup only.
 
 ## Example usage
 

@@ -1,9 +1,9 @@
 diff --git a/node_modules/@open-slide/core/src/app/lib/export-gslides.ts b/node_modules/@open-slide/core/src/app/lib/export-gslides.ts
 new file mode 100644
-index 0000000..20dddc0
+index 0000000..89da0b3
 --- /dev/null
 +++ b/node_modules/@open-slide/core/src/app/lib/export-gslides.ts
-@@ -0,0 +1,385 @@
+@@ -0,0 +1,460 @@
 +import { createElement } from 'react';
 +import { createRoot } from 'react-dom/client';
 +import { designToCssVars } from './design';
@@ -58,7 +58,7 @@ index 0000000..20dddc0
 +export async function exportSlideToGoogleSlides(
 +  slide: SlideModule,
 +  slideId: string,
-+  pageIndex: number,
++  _pageIndex: number,
 +  onProgress?: (progress: GSlidesExportProgress) => void,
 +): Promise<string> {
 +  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -71,41 +71,80 @@ index 0000000..20dddc0
 +  const pages = slide.default ?? [];
 +  if (pages.length === 0) throw new Error('Slide has no pages');
 +
-+  const safeIndex = Math.max(0, Math.min(pages.length - 1, pageIndex));
-+  const Page = pages[safeIndex];
-+  if (!Page) throw new Error(`Page ${safeIndex + 1} not found`);
++  const pageCount = pages.length;
++  const pngBlobs: Blob[] = [];
 +
-+  onProgress?.({ phase: 'capturing', percent: 5, message: 'Capturing slide…' });
-+  const pngBlob = await capturePageAsPng(slide, Page, safeIndex, pages.length);
-+  onProgress?.({ phase: 'capturing', percent: 25, message: 'Slide captured' });
++  for (let i = 0; i < pageCount; i++) {
++    const Page = pages[i];
++    if (!Page) throw new Error(`Page ${i + 1} not found`);
 +
-+  onProgress?.({ phase: 'auth', percent: 30, message: 'Signing in to Google…' });
++    const percent = Math.round(5 + ((i + 1) / pageCount) * 20);
++    onProgress?.({
++      phase: 'capturing',
++      percent,
++      message: `Capturing ${i + 1} / ${pageCount}…`,
++    });
++
++    try {
++      pngBlobs.push(await capturePageAsPng(slide, Page, i, pageCount));
++    } catch (err) {
++      const detail = err instanceof Error ? err.message : String(err);
++      throw new Error(`Failed to capture page ${i + 1}: ${detail}`);
++    }
++  }
++
++  onProgress?.({ phase: 'auth', percent: 28, message: 'Signing in to Google…' });
 +  const token = await requestGoogleAccessToken(clientId);
 +
-+  onProgress?.({ phase: 'creating', percent: 45, message: 'Creating presentation…' });
-+  const presentation = await createPresentation(token, `${slideId} — page ${safeIndex + 1}`);
++  onProgress?.({ phase: 'creating', percent: 35, message: 'Creating presentation…' });
++  const presentation = await createPresentation(token, slideId);
 +  const presentationId = presentation.presentationId;
-+  const slideObjectId = presentation.slides?.[0]?.objectId;
++  const firstSlideId = presentation.slides?.[0]?.objectId;
 +  const pageWidth = presentation.pageSize?.width?.magnitude;
 +  const pageHeight = presentation.pageSize?.height?.magnitude;
-+  if (!presentationId || !slideObjectId || pageWidth == null || pageHeight == null) {
++  if (!presentationId || !firstSlideId || pageWidth == null || pageHeight == null) {
 +    throw new Error('Failed to read new presentation metadata from Google Slides');
 +  }
 +
-+  onProgress?.({ phase: 'uploading', percent: 60, message: 'Uploading image…' });
-+  const filename = `${slideId}-page-${safeIndex + 1}.png`;
-+  const driveFileId = await uploadPngToDrive(token, pngBlob, filename);
-+  await setAnyoneReaderPermission(token, driveFileId);
++  const slideObjectIds = [firstSlideId];
++  if (pageCount > 1) {
++    onProgress?.({
++      phase: 'creating',
++      percent: 42,
++      message: `Adding ${pageCount} slides…`,
++    });
++    slideObjectIds.push(...(await addSlides(token, presentationId, pageCount - 1)));
++  }
 +
-+  const imageUrl = `https://drive.google.com/uc?export=download&id=${driveFileId}`;
++  const driveFileIds: string[] = [];
++  for (let i = 0; i < pageCount; i++) {
++    const percent = Math.round(50 + ((i + 1) / pageCount) * 25);
++    onProgress?.({
++      phase: 'uploading',
++      percent,
++      message: `Uploading ${i + 1} / ${pageCount}…`,
++    });
 +
-+  onProgress?.({ phase: 'creating', percent: 80, message: 'Inserting slide image…' });
-+  await insertFullBleedImage(token, presentationId, slideObjectId, imageUrl, pageWidth, pageHeight);
++    const filename = `${slideId}-page-${i + 1}.png`;
++    const driveFileId = await uploadPngToDrive(token, pngBlobs[i]!, filename);
++    await setAnyoneReaderPermission(token, driveFileId);
++    driveFileIds.push(driveFileId);
++  }
++
++  onProgress?.({ phase: 'creating', percent: 80, message: 'Inserting slide images…' });
++  await insertImages(
++    token,
++    presentationId,
++    slideObjectIds.map((slideObjectId, i) => ({
++      slideObjectId,
++      imageUrl: `https://drive.google.com/uc?export=download&id=${driveFileIds[i]}`,
++      pageWidth,
++      pageHeight,
++    })),
++  );
 +
 +  onProgress?.({ phase: 'cleaning', percent: 95, message: 'Cleaning up…' });
-+  await deleteDriveFile(token, driveFileId).catch(() => {
-+    // Slides keeps its own copy; temp file cleanup is best-effort.
-+  });
++  await Promise.allSettled(driveFileIds.map((fileId) => deleteDriveFile(token, fileId)));
 +
 +  const url = `https://docs.google.com/presentation/d/${presentationId}/edit`;
 +  onProgress?.({ phase: 'done', percent: 100, message: 'Done' });
@@ -310,14 +349,25 @@ index 0000000..20dddc0
 +  if (!res.ok) throw await apiError('set file permissions', res);
 +}
 +
-+async function insertFullBleedImage(
++async function addSlides(
 +  token: string,
 +  presentationId: string,
-+  slideObjectId: string,
-+  imageUrl: string,
-+  pageWidth: number,
-+  pageHeight: number,
-+): Promise<void> {
++  count: number,
++): Promise<string[]> {
++  const objectIds: string[] = [];
++  const requests = [];
++
++  for (let i = 0; i < count; i++) {
++    const objectId = `os-export-slide-${i + 2}`;
++    objectIds.push(objectId);
++    requests.push({
++      createSlide: {
++        objectId,
++        insertionIndex: i + 1,
++      },
++    });
++  }
++
 +  const res = await fetch(
 +    `https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`,
 +    {
@@ -326,32 +376,57 @@ index 0000000..20dddc0
 +        Authorization: `Bearer ${token}`,
 +        'Content-Type': 'application/json',
 +      },
-+      body: JSON.stringify({
-+        requests: [
-+          {
-+            createImage: {
-+              url: imageUrl,
-+              elementProperties: {
-+                pageObjectId: slideObjectId,
-+                size: {
-+                  width: { magnitude: pageWidth, unit: 'EMU' },
-+                  height: { magnitude: pageHeight, unit: 'EMU' },
-+                },
-+                transform: {
-+                  scaleX: 1,
-+                  scaleY: 1,
-+                  translateX: 0,
-+                  translateY: 0,
-+                  unit: 'EMU',
-+                },
-+              },
-+            },
-+          },
-+        ],
-+      }),
++      body: JSON.stringify({ requests }),
 +    },
 +  );
-+  if (!res.ok) throw await apiError('insert image into slide', res);
++  if (!res.ok) throw await apiError('add slides', res);
++  return objectIds;
++}
++
++type ImageInsertItem = {
++  slideObjectId: string;
++  imageUrl: string;
++  pageWidth: number;
++  pageHeight: number;
++};
++
++async function insertImages(
++  token: string,
++  presentationId: string,
++  items: ImageInsertItem[],
++): Promise<void> {
++  const requests = items.map(({ slideObjectId, imageUrl, pageWidth, pageHeight }) => ({
++    createImage: {
++      url: imageUrl,
++      elementProperties: {
++        pageObjectId: slideObjectId,
++        size: {
++          width: { magnitude: pageWidth, unit: 'EMU' },
++          height: { magnitude: pageHeight, unit: 'EMU' },
++        },
++        transform: {
++          scaleX: 1,
++          scaleY: 1,
++          translateX: 0,
++          translateY: 0,
++          unit: 'EMU',
++        },
++      },
++    },
++  }));
++
++  const res = await fetch(
++    `https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`,
++    {
++      method: 'POST',
++      headers: {
++        Authorization: `Bearer ${token}`,
++        'Content-Type': 'application/json',
++      },
++      body: JSON.stringify({ requests }),
++    },
++  );
++  if (!res.ok) throw await apiError('insert images into slides', res);
 +}
 +
 +async function deleteDriveFile(token: string, fileId: string): Promise<void> {
@@ -390,7 +465,7 @@ index 0000000..20dddc0
 +  });
 +}
 diff --git a/node_modules/@open-slide/core/src/app/routes/slide.tsx b/node_modules/@open-slide/core/src/app/routes/slide.tsx
-index 07aabf0..36d0780 100644
+index 07aabf0..acc76f1 100644
 --- a/node_modules/@open-slide/core/src/app/routes/slide.tsx
 +++ b/node_modules/@open-slide/core/src/app/routes/slide.tsx
 @@ -59,6 +59,7 @@ import { SlideTransitionLayer } from '../components/slide-transition-layer';
@@ -401,7 +476,7 @@ index 07aabf0..36d0780 100644
  import { exportSlideAsImagePptx } from '../lib/export-pptx';
  import { remapNotesSessionCacheAfterReorder } from '../lib/inspector/use-notes';
  import type { SlideModule } from '../lib/sdk';
-@@ -457,6 +458,26 @@ export function Slide() {
+@@ -457,6 +458,57 @@ export function Slide() {
      }
    };
  
@@ -409,14 +484,45 @@ index 07aabf0..36d0780 100644
 +    if (!slide || exporting) return;
 +    setExporting(true);
 +    const toastId = `gslides-export-${slideId}`;
-+    toast.loading('Exporting to Google Slides…', { id: toastId, duration: Infinity });
++    const pageCount = slide.default?.length ?? 0;
++
++    // Open tab synchronously while the menu click is still a user gesture — otherwise
++    // popup blockers reject window.open after the async export completes.
++    const deckTab = window.open('about:blank', '_blank');
++    if (deckTab) {
++      try {
++        deckTab.document.title = 'Exporting to Google Slides…';
++        deckTab.document.body.innerHTML =
++          '<p style="font-family:system-ui,sans-serif;padding:2rem;color:#333">Creating your deck…</p>';
++      } catch {
++        // Tab is still navigable via location.href if document access is restricted.
++      }
++    }
++
++    toast.loading(`Exporting ${pageCount} page${pageCount === 1 ? '' : 's'} to Google Slides…`, {
++      id: toastId,
++      duration: Infinity,
++    });
 +    try {
 +      const url = await exportSlideToGoogleSlides(slide, slideId, index, (p) => {
 +        toast.loading(p.message, { id: toastId, duration: Infinity });
 +      });
-+      window.open(url, '_blank', 'noopener,noreferrer');
-+      toast.success('Opened in Google Slides', { id: toastId, duration: 4000 });
++      if (deckTab && !deckTab.closed) {
++        deckTab.location.href = url;
++        deckTab.focus();
++      } else {
++        window.open(url, '_blank');
++      }
++      toast.success('Deck ready in Google Slides', {
++        id: toastId,
++        duration: 8000,
++        action: {
++          label: 'Open deck',
++          onClick: () => window.open(url, '_blank'),
++        },
++      });
 +    } catch (err) {
++      deckTab?.close();
 +      console.error('[open-slide] google slides export failed', err);
 +      const message = err instanceof Error ? err.message : 'Google Slides export failed';
 +      toast.error(message, { id: toastId, duration: 6000 });
@@ -428,7 +534,7 @@ index 07aabf0..36d0780 100644
    const exportMenuItems = (
      <>
        <DropdownMenuItem disabled={exporting} onSelect={exportHtml}>
-@@ -472,6 +493,10 @@ export function Slide() {
+@@ -472,6 +524,10 @@ export function Slide() {
          <FileImage />
          {t.slide.exportAsImagePptx}
        </DropdownMenuItem>

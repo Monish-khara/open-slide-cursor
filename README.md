@@ -9,6 +9,8 @@ GTM slide template experiments in [open-slide](https://github.com/1weiho/open-sl
 | Deck | Source |
 | --- | --- |
 | `gtm-title-slide` | Figma Brand Design Working File — Title Slide (Project Origin / May 28) |
+| `nuclear-reactors` | 10-page Cursor GTM deck — nuclear power overview |
+| `world-cup` | 10-page Cursor GTM deck — FIFA World Cup (grey type only) |
 
 ## Theme
 
