@@ -1,0 +1,441 @@
+diff --git a/node_modules/@open-slide/core/src/app/lib/export-gslides.ts b/node_modules/@open-slide/core/src/app/lib/export-gslides.ts
+new file mode 100644
+index 0000000..20dddc0
+--- /dev/null
++++ b/node_modules/@open-slide/core/src/app/lib/export-gslides.ts
+@@ -0,0 +1,385 @@
++import { createElement } from 'react';
++import { createRoot } from 'react-dom/client';
++import { designToCssVars } from './design';
++import { SlidePageProvider } from './page-context';
++import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from './print-ready';
++import type { SlideModule } from './sdk';
++
++const SLIDE_W = 1920;
++const SLIDE_H = 1080;
++const CAPTURE_PIXEL_RATIO = 2;
++
++const ANIMATION_TIMEOUT_MS = 15_000;
++const POLL_INTERVAL_MS = 100;
++
++const CAPTURE_CLASS = 'os-gslides-capture';
++const CAPTURE_STYLE_ID = 'os-gslides-capture-style';
++const FROZEN_PROPS = ['opacity', 'transform', 'filter', 'clip-path'] as const;
++
++const SCOPES = [
++  'https://www.googleapis.com/auth/presentations',
++  'https://www.googleapis.com/auth/drive.file',
++].join(' ');
++
++const GIS_SCRIPT = 'https://accounts.google.com/gsi/client';
++
++export type GSlidesExportProgress = {
++  phase: 'capturing' | 'auth' | 'uploading' | 'creating' | 'cleaning' | 'done';
++  percent: number;
++  message: string;
++};
++
++type GoogleTokenClient = {
++  requestAccessToken: (overrideConfig?: { prompt?: string }) => void;
++};
++
++declare global {
++  interface Window {
++    google?: {
++      accounts: {
++        oauth2: {
++          initTokenClient: (config: {
++            client_id: string;
++            scope: string;
++            callback: (response: { access_token?: string; error?: string; error_description?: string }) => void;
++          }) => GoogleTokenClient;
++        };
++      };
++    };
++  }
++}
++
++export async function exportSlideToGoogleSlides(
++  slide: SlideModule,
++  slideId: string,
++  pageIndex: number,
++  onProgress?: (progress: GSlidesExportProgress) => void,
++): Promise<string> {
++  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
++  if (!clientId) {
++    throw new Error(
++      'VITE_GOOGLE_CLIENT_ID is not configured. Add it to .env — see README for setup.',
++    );
++  }
++
++  const pages = slide.default ?? [];
++  if (pages.length === 0) throw new Error('Slide has no pages');
++
++  const safeIndex = Math.max(0, Math.min(pages.length - 1, pageIndex));
++  const Page = pages[safeIndex];
++  if (!Page) throw new Error(`Page ${safeIndex + 1} not found`);
++
++  onProgress?.({ phase: 'capturing', percent: 5, message: 'Capturing slide…' });
++  const pngBlob = await capturePageAsPng(slide, Page, safeIndex, pages.length);
++  onProgress?.({ phase: 'capturing', percent: 25, message: 'Slide captured' });
++
++  onProgress?.({ phase: 'auth', percent: 30, message: 'Signing in to Google…' });
++  const token = await requestGoogleAccessToken(clientId);
++
++  onProgress?.({ phase: 'creating', percent: 45, message: 'Creating presentation…' });
++  const presentation = await createPresentation(token, `${slideId} — page ${safeIndex + 1}`);
++  const presentationId = presentation.presentationId;
++  const slideObjectId = presentation.slides?.[0]?.objectId;
++  const pageWidth = presentation.pageSize?.width?.magnitude;
++  const pageHeight = presentation.pageSize?.height?.magnitude;
++  if (!presentationId || !slideObjectId || pageWidth == null || pageHeight == null) {
++    throw new Error('Failed to read new presentation metadata from Google Slides');
++  }
++
++  onProgress?.({ phase: 'uploading', percent: 60, message: 'Uploading image…' });
++  const filename = `${slideId}-page-${safeIndex + 1}.png`;
++  const driveFileId = await uploadPngToDrive(token, pngBlob, filename);
++  await setAnyoneReaderPermission(token, driveFileId);
++
++  const imageUrl = `https://drive.google.com/uc?export=download&id=${driveFileId}`;
++
++  onProgress?.({ phase: 'creating', percent: 80, message: 'Inserting slide image…' });
++  await insertFullBleedImage(token, presentationId, slideObjectId, imageUrl, pageWidth, pageHeight);
++
++  onProgress?.({ phase: 'cleaning', percent: 95, message: 'Cleaning up…' });
++  await deleteDriveFile(token, driveFileId).catch(() => {
++    // Slides keeps its own copy; temp file cleanup is best-effort.
++  });
++
++  const url = `https://docs.google.com/presentation/d/${presentationId}/edit`;
++  onProgress?.({ phase: 'done', percent: 100, message: 'Done' });
++  return url;
++}
++
++async function capturePageAsPng(
++  slide: SlideModule,
++  Page: NonNullable<SlideModule['default']>[number],
++  pageIndex: number,
++  totalPages: number,
++): Promise<Blob> {
++  const container = document.createElement('div');
++  container.className = CAPTURE_CLASS;
++  container.setAttribute('aria-hidden', 'true');
++  Object.assign(container.style, {
++    position: 'fixed',
++    left: '-99999px',
++    top: '0',
++    pointerEvents: 'none',
++  });
++  document.body.appendChild(container);
++
++  const captureStyle = document.createElement('style');
++  captureStyle.id = CAPTURE_STYLE_ID;
++  captureStyle.textContent = `.${CAPTURE_CLASS} *, .${CAPTURE_CLASS} *::before, .${CAPTURE_CLASS} *::after {
++    animation-delay: -1s !important;
++    animation-duration: 1ms !important;
++    animation-iteration-count: 1 !important;
++    animation-fill-mode: forwards !important;
++    transition: none !important;
++  }`;
++  document.head.appendChild(captureStyle);
++
++  const designVars = slide.design ? designToCssVars(slide.design) : null;
++
++  const host = document.createElement('div');
++  host.setAttribute('data-osd-canvas', '');
++  host.style.width = `${SLIDE_W}px`;
++  host.style.height = `${SLIDE_H}px`;
++  host.style.overflow = 'hidden';
++  host.style.background = '#fff';
++  if (designVars) {
++    for (const [k, v] of Object.entries(designVars)) host.style.setProperty(k, v);
++  }
++  container.appendChild(host);
++
++  const root = createRoot(host);
++  root.render(
++    createElement(
++      SlidePageProvider,
++      { index: pageIndex, total: totalPages },
++      createElement(Page),
++    ),
++  );
++
++  await nextPaint();
++
++  try {
++    await waitForFonts();
++
++    const deadline = performance.now() + ANIMATION_TIMEOUT_MS;
++    while (performance.now() < deadline) {
++      if (isFrameAnimationSettled(host)) break;
++      await sleep(POLL_INTERVAL_MS);
++    }
++    await waitForDataWaitfor(container);
++
++    freezeForCapture(host);
++    const { toBlob } = await import('html-to-image');
++    const blob = await toBlob(host, {
++      width: SLIDE_W,
++      height: SLIDE_H,
++      pixelRatio: CAPTURE_PIXEL_RATIO,
++      backgroundColor: '#ffffff',
++      cacheBust: true,
++    });
++    if (!blob) throw new Error(`Failed to capture page ${pageIndex + 1}`);
++    return blob;
++  } finally {
++    root.unmount();
++    container.remove();
++    captureStyle.remove();
++  }
++}
++
++function freezeForCapture(root: HTMLElement): void {
++  for (const el of root.querySelectorAll<HTMLElement>('*')) {
++    const cs = getComputedStyle(el);
++    for (const prop of FROZEN_PROPS) {
++      el.style.setProperty(prop, cs.getPropertyValue(prop), 'important');
++    }
++    el.style.setProperty('animation', 'none', 'important');
++    el.style.setProperty('transition', 'none', 'important');
++  }
++}
++
++async function loadGoogleIdentityScript(): Promise<void> {
++  if (window.google?.accounts?.oauth2) return;
++
++  const existing = document.querySelector<HTMLScriptElement>(`script[src="${GIS_SCRIPT}"]`);
++  if (existing) {
++    await new Promise<void>((resolve, reject) => {
++      if (window.google?.accounts?.oauth2) {
++        resolve();
++        return;
++      }
++      existing.addEventListener('load', () => resolve(), { once: true });
++      existing.addEventListener('error', () => reject(new Error('Failed to load Google Identity Services')), {
++        once: true,
++      });
++    });
++    return;
++  }
++
++  await new Promise<void>((resolve, reject) => {
++    const script = document.createElement('script');
++    script.src = GIS_SCRIPT;
++    script.async = true;
++    script.onload = () => resolve();
++    script.onerror = () => reject(new Error('Failed to load Google Identity Services'));
++    document.head.appendChild(script);
++  });
++}
++
++async function requestGoogleAccessToken(clientId: string): Promise<string> {
++  await loadGoogleIdentityScript();
++  const oauth2 = window.google?.accounts?.oauth2;
++  if (!oauth2) throw new Error('Google Identity Services is unavailable');
++
++  return new Promise((resolve, reject) => {
++    const client = oauth2.initTokenClient({
++      client_id: clientId,
++      scope: SCOPES,
++      callback: (response) => {
++        if (response.error) {
++          reject(new Error(response.error_description ?? response.error));
++          return;
++        }
++        if (!response.access_token) {
++          reject(new Error('Google sign-in did not return an access token'));
++          return;
++        }
++        resolve(response.access_token);
++      },
++    });
++    client.requestAccessToken({ prompt: '' });
++  });
++}
++
++type PresentationCreateResponse = {
++  presentationId?: string;
++  slides?: Array<{ objectId?: string }>;
++  pageSize?: {
++    width?: { magnitude?: number; unit?: string };
++    height?: { magnitude?: number; unit?: string };
++  };
++};
++
++async function createPresentation(token: string, title: string): Promise<PresentationCreateResponse> {
++  const res = await fetch('https://slides.googleapis.com/v1/presentations', {
++    method: 'POST',
++    headers: {
++      Authorization: `Bearer ${token}`,
++      'Content-Type': 'application/json',
++    },
++    body: JSON.stringify({ title }),
++  });
++  if (!res.ok) throw await apiError('create presentation', res);
++  return (await res.json()) as PresentationCreateResponse;
++}
++
++async function uploadPngToDrive(token: string, blob: Blob, filename: string): Promise<string> {
++  const metadata = { name: filename, mimeType: 'image/png' };
++  const form = new FormData();
++  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
++  form.append('file', blob, filename);
++
++  const res = await fetch(
++    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
++    {
++      method: 'POST',
++      headers: { Authorization: `Bearer ${token}` },
++      body: form,
++    },
++  );
++  if (!res.ok) throw await apiError('upload image', res);
++  const data = (await res.json()) as { id?: string };
++  if (!data.id) throw new Error('Drive upload did not return a file id');
++  return data.id;
++}
++
++async function setAnyoneReaderPermission(token: string, fileId: string): Promise<void> {
++  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
++    method: 'POST',
++    headers: {
++      Authorization: `Bearer ${token}`,
++      'Content-Type': 'application/json',
++    },
++    body: JSON.stringify({ role: 'reader', type: 'anyone' }),
++  });
++  if (!res.ok) throw await apiError('set file permissions', res);
++}
++
++async function insertFullBleedImage(
++  token: string,
++  presentationId: string,
++  slideObjectId: string,
++  imageUrl: string,
++  pageWidth: number,
++  pageHeight: number,
++): Promise<void> {
++  const res = await fetch(
++    `https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`,
++    {
++      method: 'POST',
++      headers: {
++        Authorization: `Bearer ${token}`,
++        'Content-Type': 'application/json',
++      },
++      body: JSON.stringify({
++        requests: [
++          {
++            createImage: {
++              url: imageUrl,
++              elementProperties: {
++                pageObjectId: slideObjectId,
++                size: {
++                  width: { magnitude: pageWidth, unit: 'EMU' },
++                  height: { magnitude: pageHeight, unit: 'EMU' },
++                },
++                transform: {
++                  scaleX: 1,
++                  scaleY: 1,
++                  translateX: 0,
++                  translateY: 0,
++                  unit: 'EMU',
++                },
++              },
++            },
++          },
++        ],
++      }),
++    },
++  );
++  if (!res.ok) throw await apiError('insert image into slide', res);
++}
++
++async function deleteDriveFile(token: string, fileId: string): Promise<void> {
++  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
++    method: 'DELETE',
++    headers: { Authorization: `Bearer ${token}` },
++  });
++  if (!res.ok) throw await apiError('delete temp file', res);
++}
++
++async function apiError(action: string, res: Response): Promise<Error> {
++  let detail = res.statusText;
++  try {
++    const body = (await res.json()) as { error?: { message?: string } };
++    if (body.error?.message) detail = body.error.message;
++  } catch {
++    // ignore JSON parse failures
++  }
++  return new Error(`Failed to ${action}: ${detail}`);
++}
++
++function sleep(ms: number): Promise<void> {
++  return new Promise((resolve) => setTimeout(resolve, ms));
++}
++
++function nextPaint(): Promise<void> {
++  return new Promise((resolve) => {
++    let settled = false;
++    const settle = () => {
++      if (settled) return;
++      settled = true;
++      resolve();
++    };
++    requestAnimationFrame(settle);
++    setTimeout(settle, 50);
++  });
++}
+diff --git a/node_modules/@open-slide/core/src/app/routes/slide.tsx b/node_modules/@open-slide/core/src/app/routes/slide.tsx
+index 07aabf0..36d0780 100644
+--- a/node_modules/@open-slide/core/src/app/routes/slide.tsx
++++ b/node_modules/@open-slide/core/src/app/routes/slide.tsx
+@@ -59,6 +59,7 @@ import { SlideTransitionLayer } from '../components/slide-transition-layer';
+ import { type ThumbnailActions, ThumbnailRail } from '../components/thumbnail-rail';
+ import { exportSlideAsHtml } from '../lib/export-html';
+ import { exportSlideAsPdf, isSafari } from '../lib/export-pdf';
++import { exportSlideToGoogleSlides } from '../lib/export-gslides';
+ import { exportSlideAsImagePptx } from '../lib/export-pptx';
+ import { remapNotesSessionCacheAfterReorder } from '../lib/inspector/use-notes';
+ import type { SlideModule } from '../lib/sdk';
+@@ -457,6 +458,26 @@ export function Slide() {
+     }
+   };
+ 
++  const exportGoogleSlides = async () => {
++    if (!slide || exporting) return;
++    setExporting(true);
++    const toastId = `gslides-export-${slideId}`;
++    toast.loading('Exporting to Google Slides…', { id: toastId, duration: Infinity });
++    try {
++      const url = await exportSlideToGoogleSlides(slide, slideId, index, (p) => {
++        toast.loading(p.message, { id: toastId, duration: Infinity });
++      });
++      window.open(url, '_blank', 'noopener,noreferrer');
++      toast.success('Opened in Google Slides', { id: toastId, duration: 4000 });
++    } catch (err) {
++      console.error('[open-slide] google slides export failed', err);
++      const message = err instanceof Error ? err.message : 'Google Slides export failed';
++      toast.error(message, { id: toastId, duration: 6000 });
++    } finally {
++      setExporting(false);
++    }
++  };
++
+   const exportMenuItems = (
+     <>
+       <DropdownMenuItem disabled={exporting} onSelect={exportHtml}>
+@@ -472,6 +493,10 @@ export function Slide() {
+         <FileImage />
+         {t.slide.exportAsImagePptx}
+       </DropdownMenuItem>
++      <DropdownMenuItem disabled={exporting} onSelect={exportGoogleSlides}>
++        <Presentation />
++        Export to Google Slides
++      </DropdownMenuItem>
+       <TooltipProvider delayDuration={200}>
+         <Tooltip>
+           <TooltipTrigger asChild>

@@ -10,6 +10,12 @@ GTM slide template experiments in [open-slide](https://github.com/1weiho/open-sl
 | --- | --- |
 | `gtm-title-slide` | Figma Brand Design Working File — Title Slide (Project Origin / May 28) |
 
+## Theme
+
+| Theme | Description |
+| --- | --- |
+| **Cursor GTM** | Cursor Gothic + Deck–Mon type scale (Super → XXS). Preview in dev UI **Themes** panel. |
+
 ---
 
 # open-slide workspace
@@ -19,19 +25,39 @@ Slides as React components. Each slide lives under `slides/<id>/index.tsx` and d
 ## Getting started
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Then open the dev server and edit `slides/getting-started/index.tsx`, or create a new slide at `slides/<your-slide>/index.tsx`.
+
+## Google Slides export
+
+The Download menu includes **Export to Google Slides**, which captures the current page as a PNG and inserts it full-bleed into a new Google Slides deck.
+
+### One-time Google Cloud setup
+
+1. Create a [Google Cloud project](https://console.cloud.google.com/) and enable **Google Slides API** and **Google Drive API**.
+2. Configure the **OAuth consent screen** (External). Add your Google account as a **Test user**.
+3. Create an **OAuth client ID** (Web application). Set **Authorized JavaScript origins** to `http://localhost:5173` (and your production origin if you deploy).
+4. Copy `.env.example` to `.env` and set `VITE_GOOGLE_CLIENT_ID` to the client ID.
+
+```bash
+cp .env.example .env
+# edit .env — paste your client ID
+```
+
+Restart the dev server after changing `.env`. The first export opens a Google sign-in/consent popup; the token is kept in memory for the session.
+
+> Full OAuth testing requires your own client ID. Without it, the menu item will show an error when selected.
 
 ## Scripts
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` | Start the dev server with hot reload. |
-| `pnpm build` | Build a static bundle you can deploy. |
-| `pnpm preview` | Preview the built bundle locally. |
+| `npm run dev` | Start the dev server with hot reload. |
+| `npm run build` | Build a static bundle you can deploy. |
+| `npm run preview` | Preview the built bundle locally. |
 
 ## Authoring a slide
 

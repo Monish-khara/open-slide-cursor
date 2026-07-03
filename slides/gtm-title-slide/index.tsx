@@ -37,14 +37,13 @@ if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
     }
 
     /* Figma: vertical trim = cap height → baseline */
-    .gtm-title-text {
+    .gtm-deck-text {
       text-box-trim: trim-both;
       text-box-edge: cap alphabetic;
       line-height: 0;
     }
-    .gtm-title-text p {
+    .gtm-deck-text p {
       margin: 0;
-      line-height: 0.95;
     }
   `;
   document.head.appendChild(style);
@@ -67,16 +66,29 @@ export const design: DesignSystem = {
   radius: 0,
 };
 
-const muted = '#8e8e88';
-const padding = 40;
-const lockupHeight = 94;
+const deckMon = {
+  super: { size: 140, lineHeight: 0.95, letterSpacing: '-0.03em' },
+  xxl: { size: 112, lineHeight: 0.95, letterSpacing: '-0.03em' },
+  xl: { size: 90, lineHeight: 1, letterSpacing: '-0.03em' },
+  l: { size: 64, lineHeight: 1, letterSpacing: '-0.02em' },
+  m: { size: 48, lineHeight: 1.1, letterSpacing: '-0.01em' },
+  s: { size: 36, lineHeight: 1.2, letterSpacing: '-0.005em' },
+  xs: { size: 27, lineHeight: 1.2, letterSpacing: '0' },
+  xxs: { size: 20, lineHeight: 1.2, letterSpacing: '0' },
+} as const;
 
-const heroType = {
-  fontSize: design.typeScale.hero,
-  letterSpacing: '-0.03em',
+const deckType = (token: keyof typeof deckMon) => ({
+  fontSize: deckMon[token].size,
+  lineHeight: deckMon[token].lineHeight,
+  letterSpacing: deckMon[token].letterSpacing,
   fontWeight: 400,
   fontFamily: 'var(--osd-font-display)',
-} as const;
+  margin: 0,
+});
+
+const muted = '#8e8e88';
+const padding = 40;
+const lockupHeight = 50;
 
 const fill = {
   width: '100%',
@@ -103,15 +115,15 @@ const TitleSlide: Page = () => (
     >
       {/* Figma H1 @ (40, 40) — cap height to baseline trim */}
       <div
-        className="gtm-title-text"
+        className="gtm-deck-text"
         style={{
           position: 'absolute',
           left: padding,
           top: padding,
         }}
       >
-        <p style={{ ...heroType, color: 'var(--osd-text)' }}>Project Origin</p>
-        <p style={{ ...heroType, color: muted }}>May 28</p>
+        <p style={{ ...deckType('super'), color: 'var(--osd-text)' }}>Project Origin</p>
+        <p style={{ ...deckType('super'), color: muted }}>May 28</p>
       </div>
 
       {/* Figma +LOCKUP+ @ (40, 993) — 225×47 */}
@@ -133,6 +145,7 @@ const TitleSlide: Page = () => (
 
 export const meta: SlideMeta = {
   title: 'GTM Title Slide',
+  theme: 'Cursor GTM',
   createdAt: '2026-07-03T19:50:38.178Z',
 };
 
