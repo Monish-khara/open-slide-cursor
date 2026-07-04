@@ -2,13 +2,13 @@
 
 GTM slide template experiments in [open-slide](https://github.com/1weiho/open-slide) — on-brand decks built from Figma designs, agent-ready.
 
-**Preview:** http://localhost:5173/s/gtm-title-slide (after `npm run dev`)
+**Preview:** http://localhost:5173/s/gtm-template (after `npm run dev`)
 
 ## Slides
 
 | Deck | Source |
 | --- | --- |
-| `gtm-title-slide` | Figma Brand Design Working File — Title Slide (Project Origin / May 28) |
+| `gtm-template` | GTM master template — title, agenda, section dividers, content slides, CTA (19 pages) |
 | `nuclear-reactors` | 10-page Cursor GTM deck — nuclear power overview |
 | `world-cup` | 10-page Cursor GTM deck — FIFA World Cup (grey type only) |
 

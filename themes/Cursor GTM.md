@@ -25,11 +25,14 @@ Neutrals from Cursor Brand Guidelines.
 | ---------- | --------- | ----------- |
 | pureWhite  | `#ffffff` | Pure White  |
 | offWhite   | `#edece8` | Off White   |
+| offWhite60 | `#f4f3ef` | Off White 60 — cards, tinted panels |
 | lightGray  | `#cccac4` | Light Gray  |
 | midGray    | `#8e8e8b` | Mid Gray    |
 | darkGray   | `#3b3b3a` | Dark Gray   |
 | offBlack   | `#121211` | Off Black   |
 | pureBlack  | `#000000` | Pure Black  |
+
+**Always use offBlack (`#121211`) for dark backgrounds and for “black” type.** Do not use pure black (`#000000`) or ad-hoc near-blacks like `#0a0a0a` on slides.
 
 Paste-ready constant:
 
@@ -37,6 +40,7 @@ Paste-ready constant:
 const core = {
   pureWhite: '#ffffff',
   offWhite: '#edece8',
+  offWhite60: '#f4f3ef',
   lightGray: '#cccac4',
   midGray: '#8e8e8b',
   darkGray: '#3b3b3a',
@@ -230,10 +234,149 @@ const TitleBlock = ({
 />
 ```
 
-### Footer
+### Section divider (colored canvas + illustration)
+
+Secondary palette as **full-slide background** — not for text highlights. Each variant has a unique line illustration anchored in the lower ~56% of the canvas.
+
+| # | Background token | Hex       | Figma node   |
+| - | ---------------- | --------- | ------------ |
+| 1 | blue             | `#2268ff` | 3781:11629   |
+| 2 | cursorOrange     | `#f44e00` | 3828:2047    |
+| 3 | lavender         | `#8c89e7` | 3828:2065    |
+| 4 | sky              | `#0ec1ac` | 3828:2093    |
+| 5 | green            | `#019f52` | 3828:2116    |
+| 6 | olive            | `#a88d02` | 3828:2178    |
+
+All section dividers live in the **`gtm-template`** deck (`slides/gtm-template/index.tsx`) as pages 3–8 after title and agenda.
 
 ```tsx
-import { useSlidePageNumber } from '@open-slide/core';
+const SectionDividerBlock = ({ title, topic }: { title: string; topic: string }) => (
+  <div className="gtm-deck-text" style={{ position: 'absolute', left: 40, top: 40 }}>
+    <p style={{ ...deckType('super'), color: core.offWhite }}>{title}</p>
+    <p style={{ ...deckType('super'), color: 'rgba(237, 236, 232, 0.5)' }}>{topic}</p>
+  </div>
+);
+
+// Illustration box — Figma inset top 40.74%, sides 2.08%, bottom 3.7%
+const illustrationInset = {
+  position: 'absolute' as const,
+  left: 40,
+  top: Math.round(1080 * 0.4074),
+  right: 40,
+  bottom: Math.round(1080 * 0.037),
+};
+```
+
+Export illustration SVG from Figma per variant; one asset per slide under `assets/illustration.svg`.
+
+### Simple headline + body (light)
+
+Figma `3938:9252`. White canvas, left copy block + rotated visual card on the right.
+
+- Headline: Deck Mon **L** (64px), `core.offBlack`
+- Body: Deck Mon **M** (48px), `rgba(18, 18, 17, 0.5)`
+- Copy block: `(40, 40)`, width **942px**, gap **60px** between headline and body
+- Visual: container at `left: 66.67%`, `top: 39px`, **599×1001**; inner card rotated **-90°**, **1001×599**, `border-radius: 8px`, fill `#3e2132`; image inset per Figma (`4.68%` / `11.52%` / `90.53%` / `77.13%`)
+
+```tsx
+const bodyMuted = 'rgba(18, 18, 17, 0.5)';
+
+// Light slides use cursor-lockup-dark.svg (offBlack fill), not the off-white lockup
+```
+
+### 3 column highlight (light)
+
+Figma `3780:11585`. XL headline top-left; three XS columns at `top: 451px`.
+
+- Title: Deck Mon **XL** (90px), `core.offBlack`, `(40, 40)`
+- Columns: `(40, 451)`, width **1840px**, `justify-content: space-between`, each column **550px**
+- Column title + body: Deck Mon **XS** (27px, line-height 1.2); title `core.offBlack`, body `bodyMuted`
+
+### UI feature (light)
+
+Figma `3776:6986`. Left copy stack + right off-white-60 card panel with product screenshot.
+
+- Headline: two Deck Mon **L** lines — primary `core.offBlack`, secondary `core.midGray`
+- Body: Deck Mon **XS**, `core.midGray`
+- Copy block: `(40, 40)`, width **580px**, gap **60px**
+- Card panel: `core.offWhite60` (`#f4f3ef`); outer at `left: 33.33% + 134px`, **1146×1000**, radius **6px** left corners; inner at `+225px` / `top: 102`, **1055×876**, radius **10px** left corners
+- Screenshot: `+246px` / `top: 129`, **1034×849**, image crop per Figma inset
+
+### 3 column highlight — cards (light)
+
+Figma `3780:11464`. XL “Features” headline; three off-white-60 cards in a bottom row.
+
+- Card row: `(40, 525)`, **1840×515**, `justify-content: space-between`
+- Each card: **601×515**, `core.offWhite60`, **6px** radius, **40px** padding
+- Card title: Deck Mon **S** (36px), two lines, `core.offBlack`
+- Card body: Deck Mon **XS**, `core.midGray`; **40px** gap between title block and body
+
+### 2 column comparison (light)
+
+Figma `3777:7083`. XL “Comparison” headline; two feature cards side by side.
+
+- Cards: `top: 333`, **910px** wide each, **50px** padding, `core.offWhite60`, **6px** radius
+- Header block: icon + Deck Mon **M** title + **XS** body, **40px** gap
+- Feature list: check icon (**25px**) + **XS** label, **20px** gap; **16px** between rows; `#cccac4` rule dividers
+- Card columns: **50px** gap between header block and feature list
+
+### Statement slide (dark)
+
+Figma `4156:548`. Full-bleed off-black canvas with a two-line XXL statement at top-left.
+
+- Copy block: `(40, 40)`, width **1840px**
+- Line 1: Deck Mon **XXL** (112px), `core.offWhite` — e.g. “Cursor's Mission”
+- Line 2: Deck Mon **XXL**, `core.midGray` — supporting statement
+- No lockup or footer
+
+### Timeline (light)
+
+Figma `3848:2945`. XL two-line headline; horizontal timeline with orange markers and milestone lists.
+
+- Headline: “Cursor Timeline” (`core.offBlack`) + “Brief History” (`core.midGray`), Deck Mon **XL**, `(40, 40)`
+- Quarter labels: mono **16.38px**, `core.offBlack`, row at `top: 472.7`, **1840px** wide, space-between
+- Rule: `top: 520.48` (50% − 19.52px), full content width; `core.midGray` stroke
+- Markers: **15×15px** `secondary.cursorOrange` squares at `top: 512.29`
+- Lists: Deck Mon **XXS** (20px), `core.darkGray`, `top: 550.51`, per-column `listLeft` from Figma
+
+### Future state (dark)
+
+Figma `3913:7481`. Off-black canvas, XXL headline block, pink infinity illustration.
+
+- Graphic: inset `28.24%` top, `2.08%` sides, `3.7%` bottom (`future-state-graphic.svg`)
+- Headline block: `(40, 162.5)` with `translateY(-50%)`, **1195×245**, off-black fill masks graphic
+- Copy: Deck Mon **XXL** — “Future state:” `core.offWhite` + “the future we are building towards” `core.midGray`
+
+### 4 key stats (light)
+
+Figma `3848:3076`. 2×2 grid of stat cards filling the content area.
+
+- Grid: `(40, 40)`, **1840×1000**, **20px** gap
+- Cards: `core.offWhite60`, **6px** radius, **65px** padding
+- Stat: Deck Mon **XXL**, `core.offBlack`
+- Label: **28px** / 1.3 leading, `core.midGray`
+- Logo lockup anchored to card bottom-left
+
+### Logo wall (light)
+
+Figma `3781:11923`. 4×5 grid of customer logos on off-white-60 tiles.
+
+- Grid: `(40, 40)`, **1840×1000**, **20px** gap
+- Cells: `core.offWhite60`, **6px** radius, **40px** padding, centered logo
+- Row order: Airbnb, Shopify, Ramp, Vercel, Redo → Superhuman, MongoDB, Datadog, Duolingo, Perplexity → Lucid, Snowflake, Sentry, Netflix, Retool → Semgrep, Robinhood, Block, Figma, Lime
+
+### CTA slide (dark)
+
+Figma `3780:11617`. Off-black canvas, headline + orange pill button, lockup bottom.
+
+- Background: `core.offBlack`
+- Padding: **40px** all sides; flex column `justify-content: space-between`
+- Headline: Deck Mon **XL**, `core.offWhite`, max-width **671px**
+- Button: `secondary.cursorOrange` fill (shape — not text highlight), `border-radius: 100px`, padding **20px 36px**; label Deck Mon **XS**, `core.offWhite`
+- Lockup: **50px** tall, bottom-left (off-white `cursor-lockup.svg`)
+
+### Page number footer
+
 
 const Footer = () => {
   const { current, total } = useSlidePageNumber();

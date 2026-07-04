@@ -51,9 +51,9 @@ if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
 
 export const design: DesignSystem = {
   palette: {
-    bg: '#0a0a0a',
-    text: '#edebe4',
-    accent: '#8e8e88',
+    bg: '#121211',
+    text: '#edece8',
+    accent: '#8e8e8b',
   },
   fonts: {
     display: '"Cursor Gothic", sans-serif',
@@ -86,7 +86,7 @@ const deckType = (token: keyof typeof deckMon) => ({
   margin: 0,
 });
 
-const muted = '#8e8e88';
+const muted = '#8e8e8b';
 const padding = 40;
 const lockupHeight = 50;
 
