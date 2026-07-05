@@ -8,7 +8,7 @@ GTM slide template experiments in [open-slide](https://github.com/1weiho/open-sl
 
 | Deck | Source |
 | --- | --- |
-| `gtm-template` | GTM master template — title, agenda, section dividers, content slides, CTA (19 pages) |
+| `gtm-template` | GTM master template — title, agenda, section dividers, content slides, section 4161 layouts, CTA (46 pages) |
 | `nuclear-reactors` | 10-page Cursor GTM deck — nuclear power overview |
 | `world-cup` | 10-page Cursor GTM deck — FIFA World Cup (grey type only) |
 

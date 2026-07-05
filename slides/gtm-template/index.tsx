@@ -52,6 +52,7 @@ import logoLimeMask from './assets/logo-wall/lime-mask.svg';
 import logoLimeIcon from './assets/logo-wall/lime-icon.svg';
 import logoLimeLeaf from './assets/logo-wall/lime-leaf.svg';
 import logoLimeText from './assets/logo-wall/lime-text.svg';
+import section4161Slides from './section4161';
 
 const STYLE_ID = 'gtm-template-styles';
 if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
@@ -406,6 +407,141 @@ const logoWallRows: ReactNode[][] = [
     <LimeLogo />,
   ],
 ];
+
+const sdlcPhases = ['Plan', 'Design', 'Code', 'Review/Test', 'Merge'] as const;
+
+const sdlcPhaseBody =
+  'Origin covers the entire outer loop: review, CI, merge,and code hosting, purpose-built for the volume, velocity, and reliability that agentic development demands.';
+
+/** Figma 3852:3464–3468 — blue markers centered on each phase column */
+const SDLC_MARKER_LEFT = [209, Math.round(1920 / 6) + 261, 960 - 7, Math.round((1920 * 2) / 3) + 45, Math.round((1920 * 5) / 6) + 97] as const;
+
+const SdlcSlideLayout = ({ withDescriptions }: { withDescriptions: boolean }) => (
+  <div
+    style={{
+      width: '100%',
+      height: '100%',
+      background: core.pureWhite,
+      position: 'relative',
+      overflow: 'hidden',
+      fontFamily: 'var(--osd-font-display)',
+    }}
+  >
+    <p
+      className="gtm-deck-text"
+      style={{
+        position: 'absolute',
+        left: MARGIN,
+        top: MARGIN,
+        width: 910,
+        ...deckType('xl'),
+        color: core.offBlack,
+        margin: 0,
+      }}
+    >
+      Software Development Lifecycle
+    </p>
+
+    <div
+      style={{
+        position: 'absolute',
+        left: MARGIN,
+        top: 540 - 37.81,
+        width: 1920 - MARGIN * 2,
+        height: 2,
+        transform: 'translateY(-50%)',
+      }}
+    >
+      <img src={timelineRule} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+    </div>
+
+    {SDLC_MARKER_LEFT.map((left, index) => (
+      <div
+        key={sdlcPhases[index]}
+        style={{
+          position: 'absolute',
+          left,
+          top: 494,
+          width: 15,
+          height: 15,
+          background: secondary.blue,
+        }}
+      />
+    ))}
+
+    <div
+      style={{
+        position: 'absolute',
+        left: MARGIN,
+        top: 533.71,
+        width: 1920 - MARGIN * 2,
+        display: 'flex',
+        gap: 20,
+        alignItems: 'center',
+      }}
+    >
+      {sdlcPhases.map((phase) => (
+        <div
+          key={phase}
+          style={{
+            width: 352,
+            height: 148,
+            background: core.offWhite60,
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <p className="gtm-deck-text" style={{ ...deckType('s'), color: core.offBlack, margin: 0, textAlign: 'center' }}>
+            {phase}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    {withDescriptions ? (
+      <div
+        style={{
+          position: 'absolute',
+          left: MARGIN,
+          top: 702,
+          width: 1920 - MARGIN * 2,
+          height: 338,
+          display: 'flex',
+          gap: 20,
+          alignItems: 'stretch',
+        }}
+      >
+        {sdlcPhases.map((phase) => (
+          <div
+            key={`${phase}-body`}
+            style={{
+              width: 352,
+              height: '100%',
+              background: core.offWhite60,
+              borderRadius: 6,
+              padding: 30,
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'flex-start',
+              flexShrink: 0,
+            }}
+          >
+            <p className="gtm-deck-text" style={{ ...deckType('xxs'), color: core.darkGray, margin: 0 }}>
+              {sdlcPhaseBody}
+            </p>
+          </div>
+        ))}
+      </div>
+    ) : null}
+  </div>
+);
+
+const SdlcSlide: Page = () => <SdlcSlideLayout withDescriptions={false} />;
+
+const SdlcDetailSlide: Page = () => <SdlcSlideLayout withDescriptions={true} />;
 
 /** Figma 3780:11468 — centered row, translate -50%/-50% from (50%, 50%+242.5px) */
 const CARD_ROW_TOP = Math.round(1080 / 2 + 242.5 - 515 / 2);
@@ -1329,5 +1465,8 @@ export default [
   FutureStateSlide,
   FourKeyStatsSlide,
   LogoWallSlide,
+  SdlcSlide,
+  SdlcDetailSlide,
+  ...section4161Slides,
   CtaSlide,
 ] satisfies Page[];

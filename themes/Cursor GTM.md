@@ -365,6 +365,17 @@ Figma `3781:11923`. 4×5 grid of customer logos on off-white-60 tiles.
 - Cells: `core.offWhite60`, **6px** radius, **40px** padding, centered logo
 - Row order: Airbnb, Shopify, Ramp, Vercel, Redo → Superhuman, MongoDB, Datadog, Duolingo, Perplexity → Lucid, Snowflake, Sentry, Netflix, Retool → Semgrep, Robinhood, Block, Figma, Lime
 
+### SDLC (light)
+
+Figma section `4156:561` — two variants.
+
+**SDLC** (`3852:3404`): XL title; timeline with `secondary.blue` markers; five phase cards (Deck Mon **S**, centered) on `core.offWhite60`.
+
+**SDLC detail** (`3852:3470`): Same as above plus description row at `top: 702` — **352×338** cards, **30px** padding, Deck Mon **XXS**, `core.darkGray`.
+
+- Phase row: `top: 533.71`, **352×148** cards, **20px** gap
+- Rule: `top: 502.19` (50% − 37.81px); markers at `top: 494`
+
 ### CTA slide (dark)
 
 Figma `3780:11617`. Off-black canvas, headline + orange pill button, lockup bottom.
@@ -374,6 +385,36 @@ Figma `3780:11617`. Off-black canvas, headline + orange pill button, lockup bott
 - Headline: Deck Mon **XL**, `core.offWhite`, max-width **671px**
 - Button: `secondary.cursorOrange` fill (shape — not text highlight), `border-radius: 100px`, padding **20px 36px**; label Deck Mon **XS**, `core.offWhite`
 - Lockup: **50px** tall, bottom-left (off-white `cursor-lockup.svg`)
+
+### Section 4161 layouts (`slides/gtm-template/section4161.tsx`)
+
+Figma section `4161:4668` — 25 pages appended before CTA (pages 22–46). Assets under `assets/section4161/`.
+
+| Slide | Figma node | Notes |
+| ----- | ---------- | ----- |
+| AI Curve 4–1 | 4161:2326–2387 | Shared `AiCurveSlide`; curve SVG per variant; milestone labels **30.735px** |
+| Platform overview | 4161:2648 | Today/Q3 dashed columns + Origin bar |
+| Architecture Diagram | 4161:2677 | Same diagram as platform overview, different title |
+| Joint Logo Lockup | 4161:3190 | Off-white canvas; Cursor lockup + divider + `+LOGO+` |
+| Brief Narrative | 4161:3235 | XXL quote + OpenAI logo |
+| 3 Proof Points | 4161:3267 | XL headline; 3 stat cards; right visual panel |
+| Customer Quote | 4161:3303 | Split quote card + perspective graphic |
+| Hero Metric | 4161:3204 | Olive panel + `$66M` super stat |
+| Enterprise Controls | 4161:2838 | Lavender canvas + line-art illustration |
+| Headline (×2) | 4161:192, 4161:202 | XL full-width statement |
+| Body | 4161:207 | Two enterprise control cards |
+| 10 Key features | 4161:2267 | 2×5 feature grid, XXS copy |
+| Admin Dashboard | 4161:3230 | Full-bleed dashboard screenshot |
+| Section Divider | 4161:2873 | Green canvas; Enterprise / Cursor Organizations |
+| 3 Column Overview | 4161:244 | Three git-forge cards + icons |
+| Visual Diagram | 4161:299 | Org hierarchy (Settings A/B/C) — simplified HTML boxes + connector SVGs |
+| Surfaces | 4161:2447 | 2×2 dashed-border surface tiles |
+| Connectors | 4161:3321 | `/add-plugin` composer + dual connector columns |
+| Extensibility | 4161:3435 | SDK / marketplace / skills panels + bottom copy row |
+| 4 Step Plan | 4161:268 | Timeline + four step cards |
+| Code Review | 4161:4251 | Left copy + PR screenshot panel |
+
+**Simplifications:** Visual Diagram uses React boxes + line SVGs instead of pixel-perfect nested Figma layout. Extensibility marketplace and Code Review use exported PNG screenshots. Connectors composer chrome is simplified (no SF Symbols).
 
 ### Page number footer
 
