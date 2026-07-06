@@ -53,6 +53,7 @@ import logoLimeIcon from './assets/logo-wall/lime-icon.svg';
 import logoLimeLeaf from './assets/logo-wall/lime-leaf.svg';
 import logoLimeText from './assets/logo-wall/lime-text.svg';
 import section4161Slides from './section4161';
+import section4179Slides from './section4179';
 
 const STYLE_ID = 'gtm-template-styles';
 if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
@@ -1468,5 +1469,6 @@ export default [
   SdlcSlide,
   SdlcDetailSlide,
   ...section4161Slides,
+  ...section4179Slides,
   CtaSlide,
 ] satisfies Page[];

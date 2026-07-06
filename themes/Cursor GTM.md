@@ -416,6 +416,33 @@ Figma section `4161:4668` — 25 pages appended before CTA (pages 22–46). Asse
 
 **Simplifications:** Visual Diagram uses React boxes + line SVGs instead of pixel-perfect nested Figma layout. Extensibility marketplace and Code Review use exported PNG screenshots. Connectors composer chrome is simplified (no SF Symbols).
 
+### Section 4179 layouts (`slides/gtm-template/section4179.tsx`)
+
+Figma section `4179:4669` — 18 pages appended before CTA (pages 47–64). Assets under `assets/section4179/`.
+
+| Slide | Figma node | Notes |
+| ----- | ---------- | ----- |
+| Title Slide | 4161:132 | offBlack canvas; Cursor Product Insights / May 28; cursor-lockup.svg |
+| Table Layout | 4161:1801 | Full-width model comparison table with SVG model icons |
+| Model Selection & Cost | 4161:1476 | Left copy + right table (10 rows) |
+| Model Neutrality | 4161:1662 | Left copy + simplified model picker panel |
+| Pricing Model | 4161:1685 | Four pricing columns (Hobby / Individual / Teams / Enterprise) |
+| Rules, skills and sub-agents | 4161:3488 | XL headline + exported PNG visual |
+| Composer Benchmark | 4161:1988 | offWhite canvas; chart PNG + L headline |
+| The Software Factory | 4161:1392 | Dashed blue factory diagram with React chip boxes |
+| Section Divider | 4161:2985 | Olive canvas; Cursor's Advantage / The Harness; 3 SVG layers |
+| Model Harness 1 | 4161:3038 | XL headline + two stat cards with + between |
+| Model Harness 23 | 4161:432 | 3-column icon comparison (Model / Harness / Applications) |
+| Model Harness 2 | 4161:450 | 3 columns with harness UI + product chips in third column |
+| Model Harness 7 | 4161:1273 | Model column focus; harness/apps columns at 25% opacity |
+| Model Harness 8 | 4161:1331 | Cursor's primary focus; model column ghosted left |
+| Model Harness 21 | 4161:521 | Left leaderboard PNG stack + right quote cards |
+| Model Harness 16 | 4161:539 | Quote + Endor link; exported UI panel PNG |
+| Model Harness 17 | 4161:1255 | XXL headline + benchmark chart PNG |
+| Model Harness 18 | 4161:1262 | Quote + YouTube thumbnail PNG panel |
+
+**Simplifications:** Rules/skills slide, Harness 16 UI, Harness 21 leaderboard, Harness 17 benchmark, and Harness 18 YouTube use exported PNG screenshots. Model Neutrality picker is simplified React (no SF Symbols). Software Factory uses React chip boxes instead of pixel-perfect nested layout. Harness comparison slides use simplified product chip tags.
+
 ### Page number footer
 
 
