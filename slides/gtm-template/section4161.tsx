@@ -96,6 +96,14 @@ const milestoneLabelType = {
 const CARD_ROW_TOP = Math.round(1080 / 2 + 242.5 - 515 / 2);
 const UI_FEATURE_X = Math.round(1920 / 3);
 
+/** Figma 4161:2326–2391 — each curve variant is a segment of the same path with its own bbox. */
+const aiCurveBoxes = {
+  curve4: { left: 117, top: 99, width: 1668, height: 856 },
+  curve3: { left: 117, top: 649.809, width: 1216, height: 305.191 },
+  curve2: { left: 117, top: 855.478, width: 725, height: 99.522 },
+  curve1: { left: 117, top: 943.275, width: 198.5, height: 11.725 },
+} as const;
+
 const lightSlide: CSSProperties = {
   width: '100%',
   height: '100%',
@@ -113,6 +121,7 @@ type Milestone = {
   lines: string[];
   cardLeft: number;
   cardTop: number;
+  cardWidth?: number;
 };
 
 const assistedMilestone = {
@@ -121,6 +130,15 @@ const assistedMilestone = {
   dotLeft: 301.52,
   dotTop: 930.37,
 } as const;
+
+/** Figma renders dots at 24.392px with a −42.11% inset halo so the stroke sits on the curve. */
+const MilestoneDot = ({ src, left, top }: { src: string; left: number; top: number }) => (
+  <div style={{ position: 'absolute', left, top, width: 24.392, height: 24.392, zIndex: 2 }}>
+    <div style={{ position: 'absolute', inset: '-42.11%' }}>
+      <img src={src} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+    </div>
+  </div>
+);
 
 const MilestoneCard = ({ lines }: { lines: string[] }) => (
   <div
@@ -172,7 +190,11 @@ const AiCurveSlide = ({
     >
       AI Development Maturity Curve
     </p>
-    <img src={curveSrc} alt="" style={{ position: 'absolute', ...curveStyle }} />
+    <img
+      src={curveSrc}
+      alt=""
+      style={{ position: 'absolute', zIndex: 1, display: 'block', ...curveStyle }}
+    />
     {assistedOnly ? (
       <>
         <div
@@ -184,6 +206,7 @@ const AiCurveSlide = ({
             height: 125.813,
             background: core.offWhite60,
             borderRadius: 6,
+            zIndex: 2,
           }}
         />
         <p
@@ -194,6 +217,7 @@ const AiCurveSlide = ({
             top: 837.41,
             width: 240.071,
             transform: 'translateX(-50%)',
+            zIndex: 2,
             ...milestoneLabelType,
             color: core.offBlack,
             textAlign: 'center',
@@ -201,11 +225,7 @@ const AiCurveSlide = ({
         >
           AI Assisted
         </p>
-        <img
-          src={milestoneDotStart}
-          alt=""
-          style={{ position: 'absolute', left: assistedOnly.dotLeft, top: assistedOnly.dotTop, width: 24.392, height: 24.392 }}
-        />
+        <MilestoneDot src={milestoneDotStart} left={assistedOnly.dotLeft} top={assistedOnly.dotTop} />
       </>
     ) : null}
     {milestones.map((m) => (
@@ -215,15 +235,20 @@ const AiCurveSlide = ({
           position: 'absolute',
           left: m.cardLeft,
           top: m.cardTop,
-          width: 270.882,
+          width: m.cardWidth ?? 270.882,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 11.554,
+          zIndex: 2,
         }}
       >
         <MilestoneCard lines={m.lines} />
-        <img src={milestoneDotActive} alt="" style={{ width: 24.392, height: 24.392, display: 'block' }} />
+        <div style={{ position: 'relative', width: 24.392, height: 24.392, flexShrink: 0 }}>
+          <div style={{ position: 'absolute', inset: '-42.11%' }}>
+            <img src={milestoneDotActive} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+          </div>
+        </div>
       </div>
     ))}
   </LightSlide>
@@ -539,13 +564,14 @@ const UserChip = ({ name }: { name: string }) => (
 export const AiCurve4Slide: Page = () => (
   <AiCurveSlide
     curveSrc={aiCurve4}
-    curveStyle={{ left: 'calc(50% - 843px)', top: 86, width: 1668, height: 856 }}
+    curveStyle={aiCurveBoxes.curve4}
     assistedOnly={assistedMilestone}
     milestones={[
       {
         lines: ['Agents (Sync)'],
         cardLeft: platformDiagramMilestones.agentsSync.cardLeft,
         cardTop: platformDiagramMilestones.agentsSync.cardTop,
+        cardWidth: 291.423,
       },
       {
         lines: ['Cloud Agents', '(Async)'],
@@ -564,13 +590,14 @@ export const AiCurve4Slide: Page = () => (
 export const AiCurve3Slide: Page = () => (
   <AiCurveSlide
     curveSrc={aiCurve3}
-    curveStyle={{ left: Math.round(1920 * 0.4167) - 75 - 608, top: 657, width: 1216, height: 305.191 }}
+    curveStyle={aiCurveBoxes.curve3}
     assistedOnly={assistedMilestone}
     milestones={[
       {
         lines: ['Agents (Sync)'],
         cardLeft: platformDiagramMilestones.agentsSync.cardLeft,
         cardTop: platformDiagramMilestones.agentsSync.cardTop,
+        cardWidth: 291.423,
       },
       {
         lines: ['Cloud Agents', '(Async)'],
@@ -584,13 +611,14 @@ export const AiCurve3Slide: Page = () => (
 export const AiCurve2Slide: Page = () => (
   <AiCurveSlide
     curveSrc={aiCurve2}
-    curveStyle={{ left: Math.round(1920 * 0.25) - 363, top: 815, width: 725, height: 99.522 }}
+    curveStyle={aiCurveBoxes.curve2}
     assistedOnly={assistedMilestone}
     milestones={[
       {
         lines: ['Agents (Sync)'],
         cardLeft: platformDiagramMilestones.agentsSync.cardLeft,
         cardTop: platformDiagramMilestones.agentsSync.cardTop,
+        cardWidth: 291.423,
       },
     ]}
   />
@@ -599,7 +627,7 @@ export const AiCurve2Slide: Page = () => (
 export const AiCurve1Slide: Page = () => (
   <AiCurveSlide
     curveSrc={aiCurve1}
-    curveStyle={{ left: Math.round(1920 * 0.0833) + 56 - 99, top: 899, width: 198.5, height: 11.725 }}
+    curveStyle={aiCurveBoxes.curve1}
     assistedOnly={assistedMilestone}
     milestones={[]}
   />
@@ -1341,10 +1369,10 @@ export const ExtensibilitySlide: Page = () => (
             boxSizing: 'border-box',
           }}
         >
-          <div className="gtm-deck-text">
-            <p style={{ fontSize: 24, color: core.offBlack, margin: 0 }}>{label}</p>
-            <p style={{ fontSize: 24, color: core.midGray, margin: 0 }}>{extensibilityCopy.title}</p>
-            <p style={{ fontSize: 24, color: core.midGray, margin: 0 }}>{extensibilityCopy.body}</p>
+          <div className="gtm-deck-text" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p style={{ fontSize: 24, lineHeight: 1.3, color: core.offBlack, margin: 0 }}>{label}</p>
+            <p style={{ fontSize: 24, lineHeight: 1.3, color: core.midGray, margin: 0 }}>{extensibilityCopy.title}</p>
+            <p style={{ fontSize: 24, lineHeight: 1.3, color: core.midGray, margin: 0 }}>{extensibilityCopy.body}</p>
           </div>
         </div>
       ))}
