@@ -2,6 +2,7 @@ import type { Page } from '@open-slide/core';
 import type { CSSProperties, ReactNode } from 'react';
 
 import cursorLockup from './assets/cursor-lockup.svg';
+import cursorWordmarkBlack from './assets/cursor-wordmark-black.svg';
 import checkIcon from './assets/section4179/check-icon.svg';
 import composerBenchmarkChart from './assets/section4179/composer-benchmark-chart.png';
 import cursorCubeIcon from './assets/section4179/cursor-cube-icon.svg';
@@ -24,7 +25,9 @@ import modelIconAnthropic from './assets/section4179/model-icon-anthropic.svg';
 import modelIconDeepseek from './assets/section4179/model-icon-deepseek.svg';
 import modelIconGoogle from './assets/section4179/model-icon-google.svg';
 import modelIconOpenai from './assets/section4179/model-icon-openai.svg';
-import rulesSkillsVisual from './assets/section4179/rules-skills-visual.png';
+import rulesSkillsRules from './assets/section4179/rules-skills-rules.png';
+import rulesSkillsSkills from './assets/section4179/rules-skills-skills.png';
+import rulesSkillsSubagents from './assets/section4179/rules-skills-subagents.png';
 import tableRule from './assets/section4179/table-rule.svg';
 
 const core = {
@@ -78,6 +81,31 @@ const tableType = {
 const MARGIN = 40;
 const LOCKUP_H = 50;
 const bodyMuted = 'rgba(18, 18, 17, 0.5)';
+
+/** Brand marks — set height only; width derives from SVG aspect ratio. */
+const BrandLogo = ({
+  src,
+  alt,
+  height,
+  style,
+}: {
+  src: string;
+  alt: string;
+  height: number;
+  style?: CSSProperties;
+}) => (
+  <img
+    src={src}
+    alt={alt}
+    style={{
+      height,
+      width: 'auto',
+      display: 'block',
+      flexShrink: 0,
+      ...style,
+    }}
+  />
+);
 const topicMuted = 'rgba(237, 236, 232, 0.5)';
 const cardTint = 'rgba(237, 235, 228, 0.6)';
 const tableTint = 'rgba(237, 235, 228, 0.2)';
@@ -123,7 +151,7 @@ const modelRows: ModelRow[] = [
 const TableRow = ({ row, showAllColumns = true }: { row: ModelRow; showAllColumns?: boolean }) => (
   <>
     <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 410 }}>
-      <img src={row.icon} alt="" style={{ width: 20, height: 20, flexShrink: 0 }} />
+      <img src={row.icon} alt="" style={{ width: 20, height: 20, flexShrink: 0, objectFit: 'contain' }} />
       <p className="gtm-deck-text" style={{ ...tableType, color: core.midGray, width: 374 }}>
         {row.name}
       </p>
@@ -171,7 +199,11 @@ const FullWidthModelTable = ({ rows }: { rows: ModelRow[] }) => (
         }}
       >
         {['% Resolved', 'Avg. $', 'Org', 'Date', 'Agent'].map((label) => (
-          <p key={label} className="gtm-deck-text" style={{ ...tableType, color: core.offBlack, width: 154 }}>
+          <p
+            key={label}
+            className="gtm-deck-text"
+            style={{ ...tableType, color: core.offBlack, width: 154, whiteSpace: 'nowrap' }}
+          >
             {label}
           </p>
         ))}
@@ -296,7 +328,7 @@ const ApplicationCards = () => (
           boxSizing: 'border-box',
         }}
       >
-        <img src={card.icon} alt="" style={{ width: 57, height: 66, flexShrink: 0 }} />
+        <BrandLogo src={card.icon} alt="" height={66} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {card.rows.map((row, rowIndex) => (
             <div key={rowIndex} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -504,7 +536,11 @@ export const ModelSelectionCostSlide: Page = () => (
         }}
       >
         {['% Resolved', 'Avg. $', 'Org', 'Date', 'Agent'].map((label) => (
-          <p key={label} className="gtm-deck-text" style={{ ...tableType, color: core.offBlack, width: 154 }}>
+          <p
+            key={label}
+            className="gtm-deck-text"
+            style={{ ...tableType, color: core.offBlack, width: 154, whiteSpace: 'nowrap' }}
+          >
             {label}
           </p>
         ))}
@@ -655,6 +691,46 @@ export const PricingModelSlide: Page = () => (
   </LightSlide>
 );
 
+const rulesSkillsCardType = {
+  fontSize: 24,
+  lineHeight: 1.34,
+  letterSpacing: '-0.12px',
+  fontWeight: 400,
+  fontFamily: 'var(--osd-font-display)',
+  margin: 0,
+} as const;
+
+const RulesSkillsFeatureCard = ({
+  title,
+  subtitle,
+  body,
+}: {
+  title: string;
+  subtitle: string;
+  body: string;
+}) => (
+  <div
+    style={{
+      flex: 1,
+      background: cardTint,
+      borderRadius: 8,
+      padding: 40,
+      boxSizing: 'border-box',
+      height: 277,
+    }}
+  >
+    <p className="gtm-deck-text" style={{ ...rulesSkillsCardType, color: core.offBlack }}>
+      {title}
+    </p>
+    <p className="gtm-deck-text" style={{ ...rulesSkillsCardType, color: core.midGray }}>
+      {subtitle}
+    </p>
+    <p className="gtm-deck-text" style={{ ...rulesSkillsCardType, color: core.midGray, marginTop: 24 }}>
+      {body}
+    </p>
+  </div>
+);
+
 export const RulesSkillsSubAgentsSlide: Page = () => (
   <LightSlide>
     <p className="gtm-deck-text" style={{ position: 'absolute', left: MARGIN, top: MARGIN, ...deckType('xl'), color: core.offBlack }}>
@@ -666,12 +742,45 @@ export const RulesSkillsSubAgentsSlide: Page = () => (
         left: MARGIN,
         top: 196,
         width: 1840,
-        height: 547,
-        borderRadius: 6,
-        overflow: 'hidden',
+        display: 'flex',
+        gap: 20,
       }}
     >
-      <img src={rulesSkillsVisual} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div style={{ width: 600, height: 547, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
+        <img src={rulesSkillsRules} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      </div>
+      <div style={{ width: 600, height: 547, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
+        <img src={rulesSkillsSkills} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      </div>
+      <div style={{ width: 600, height: 547, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
+        <img src={rulesSkillsSubagents} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      </div>
+    </div>
+    <div
+      style={{
+        position: 'absolute',
+        left: MARGIN,
+        top: 763,
+        width: 1840,
+        display: 'flex',
+        gap: 20,
+      }}
+    >
+      <RulesSkillsFeatureCard
+        title="Rules"
+        subtitle="Maintain quality at scale."
+        body="Enforce standards across every codebase without slowing teams down."
+      />
+      <RulesSkillsFeatureCard
+        title="Sub-agents"
+        subtitle="Maintain quality at scale."
+        body="Enforce standards across every codebase without slowing teams down."
+      />
+      <RulesSkillsFeatureCard
+        title="Skills"
+        subtitle="Maintain quality at scale."
+        body="Enforce standards across every codebase without slowing teams down."
+      />
     </div>
   </LightSlide>
 );
@@ -729,9 +838,9 @@ export const SoftwareFactorySlide: Page = () => (
         gap: 50,
       }}
     >
-      <p className="gtm-deck-text" style={{ ...deckType('m'), color: core.offBlack, textAlign: 'center', fontSize: 44.6 }}>
-        +LOGO+
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <BrandLogo src={cursorWordmarkBlack} alt="Cursor" height={44.6} />
+      </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 30 }}>
         <div style={{ display: 'flex', gap: 30, flex: 1, minHeight: 0 }}>
           <FactorySection title="Developer Interfaces (sync)">
@@ -865,7 +974,7 @@ export const ModelHarness1Slide: Page = () => (
             alignItems: 'center',
           }}
         >
-          <img src={cursorCubeIcon} alt="" style={{ width: 40, height: 46 }} />
+          <img src={cursorCubeIcon} alt="" style={{ width: 40, height: 46, objectFit: 'contain' }} />
           <p style={{ ...tableType, color: core.offBlack, width: 242, margin: 0 }}>
             The best coding applications &amp; harnesses
           </p>
@@ -884,10 +993,10 @@ export const ModelHarness1Slide: Page = () => (
           }}
         >
           <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-            <img src={modelIconAnthropic} alt="" style={{ width: 28, height: 28 }} />
-            <img src={modelIconGoogle} alt="" style={{ width: 28, height: 28 }} />
-            <img src={modelIconOpenai} alt="" style={{ width: 28, height: 28 }} />
-            <img src={modelIconDeepseek} alt="" style={{ width: 28, height: 28 }} />
+            <img src={modelIconAnthropic} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            <img src={modelIconGoogle} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            <img src={modelIconOpenai} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            <img src={modelIconDeepseek} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
           </div>
           <p style={{ ...tableType, color: core.offBlack, margin: 0, whiteSpace: 'nowrap' }}>
             The best models
@@ -931,13 +1040,13 @@ export const ModelHarness23Slide: Page = () => (
       </div>
       <div style={{ display: 'flex', gap: 20, height: 670 }}>
         <HarnessColumnBox borderColor={secondary.blue}>
-          <img src={harnessIconModel} alt="" style={{ width: 64, height: 64 }} />
+          <img src={harnessIconModel} alt="" style={{ width: 64, height: 64, objectFit: 'contain' }} />
         </HarnessColumnBox>
         <HarnessColumnBox borderColor={secondary.cursorOrange}>
-          <img src={harnessIconHarness} alt="" style={{ width: 64, height: 64 }} />
+          <img src={harnessIconHarness} alt="" style={{ width: 64, height: 64, objectFit: 'contain' }} />
         </HarnessColumnBox>
         <HarnessColumnBox borderColor={secondary.cursorOrange}>
-          <img src={harnessIconApps} alt="" style={{ width: 64, height: 64 }} />
+          <img src={harnessIconApps} alt="" style={{ width: 64, height: 64, objectFit: 'contain' }} />
         </HarnessColumnBox>
       </div>
     </div>
@@ -965,8 +1074,13 @@ export const ModelHarness2Slide: Page = () => (
           </p>
         </HarnessColumnBox>
         <HarnessColumnBox borderColor={secondary.cursorOrange}>
-          <div className="gtm-deck-text" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <p style={{ ...deckType('s'), color: core.offBlack, margin: 0, width: 380 }}>Proprietary &amp; Custom</p>
+          <div
+            className="gtm-deck-text"
+            style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
+          >
+            <p style={{ ...deckType('s'), color: core.offBlack, margin: 0, width: 380, textAlign: 'center' }}>
+              Proprietary &amp; Custom
+            </p>
             <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, width: 474 }}>
               (System prompt, context assembly, tool execution, conversation &amp; cache management, agentic loop,
               etc)
@@ -1004,8 +1118,13 @@ export const ModelHarness7Slide: Page = () => (
       </div>
       <div style={{ display: 'flex', gap: 20 }}>
         <HarnessColumnBox borderColor={secondary.cursorOrange}>
-          <div className="gtm-deck-text" style={{ textAlign: 'center' }}>
-            <p style={{ ...deckType('s'), color: core.offBlack, margin: 0, width: 380 }}>Proprietary &amp; Custom</p>
+          <div
+            className="gtm-deck-text"
+            style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
+            <p style={{ ...deckType('s'), color: core.offBlack, margin: 0, width: 380, textAlign: 'center' }}>
+              Proprietary &amp; Custom
+            </p>
             <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, width: 474 }}>
               (System prompt, context assembly, tool execution, conversation &amp; cache management, agentic loop, etc)
             </p>
@@ -1048,8 +1167,13 @@ export const ModelHarness8Slide: Page = () => (
       </div>
       <div style={{ display: 'flex', gap: 20 }}>
         <HarnessColumnBox borderColor={secondary.cursorOrange}>
-          <div className="gtm-deck-text" style={{ textAlign: 'center' }}>
-            <p style={{ ...deckType('s'), color: core.offBlack, margin: 0, width: 380 }}>Proprietary &amp; Custom</p>
+          <div
+            className="gtm-deck-text"
+            style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
+            <p style={{ ...deckType('s'), color: core.offBlack, margin: 0, width: 380, textAlign: 'center' }}>
+              Proprietary &amp; Custom
+            </p>
             <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, width: 474 }}>
               (System prompt, context assembly, tool execution, conversation &amp; cache management, agentic loop, etc)
             </p>
@@ -1103,14 +1227,19 @@ export const ModelHarness16Slide: Page = () => (
   <LightSlide>
     <div className="gtm-deck-text" style={{ position: 'absolute', left: MARGIN, top: MARGIN, width: 1343, display: 'flex', flexDirection: 'column', gap: 80 }}>
       <p style={{ ...deckType('xxl'), color: core.offBlack, margin: 0 }}>
-        Cursor&apos;s harness is the most
+        Fable 5 delivered a 52.6%¹
         <br />
-        capable in the industry.
+        better security score in
+        <br />
+        Cursor than in Claude Code.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 40, width: 1020 }}>
         <div>
           <p style={{ ...deckType('xs'), color: core.offBlack, margin: 0 }}>Purpose-built harnesses yield better results</p>
-          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0 }}>Per Endor Labs&apos; Agent Benchmark</p>
+          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0 }}>
+            Per Endor Labs&rsquo; June 2026 Agent Security benchmark:
+          </p>
+          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0 }}>¹ scored 29%, 52.6% better than 19%</p>
         </div>
         <div style={{ background: cardTint, borderRadius: 8, padding: '18px 25px', display: 'inline-flex', gap: 10, alignItems: 'center', width: 'fit-content' }}>
           <span style={{ ...tableType, color: secondary.cursorOrange, textDecoration: 'underline' }}>endorlabs.com</span>
@@ -1157,29 +1286,33 @@ export const ModelHarness17Slide: Page = () => (
 export const ModelHarness18Slide: Page = () => (
   <LightSlide>
     <div className="gtm-deck-text" style={{ position: 'absolute', left: MARGIN, top: MARGIN, width: 1459, display: 'flex', flexDirection: 'column', gap: 80 }}>
-      <p style={{ ...deckType('xxl'), color: core.offBlack, margin: 0 }}>
+      <p style={{ ...deckType('xxl'), color: core.offBlack, margin: 0, width: 'min-content' }}>
         Opus scored 20% higher
         <br />
         in Cursor than in Claude Code.
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 40, maxWidth: 716 }}>
-        <div>
-          <p style={{ ...deckType('xs'), color: core.offBlack, margin: 0 }}>Purpose-built harnesses yield better results</p>
-          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+        <div style={{ width: 716 }}>
+          <p style={{ ...deckType('xs'), color: core.offBlack, margin: 0, lineHeight: 1.2 }}>
+            Purpose-built harnesses yield better results
+          </p>
+          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, lineHeight: 1.2 }}>
             Cursor&apos;s codebase-aware harness routinely delivers more accurate and faster results, especially in large
             codebases. Cursor is focused on harness development, not on building all-purpose AGI.
           </p>
-          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, marginTop: 20 }}>
+          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, lineHeight: 1.2 }}>&nbsp;</p>
+          <p style={{ ...deckType('xs'), color: core.midGray, margin: 0, lineHeight: 1.2 }}>
             Per an Independent study by Matt Maher, Staff Engineer at Sony: Benchmarked with a PRD-to-implementation
             task across a battery of 100 features.
           </p>
         </div>
         <div style={{ background: cardTint, borderRadius: 8, padding: '18px 25px', display: 'inline-flex', gap: 10, alignItems: 'center', width: 'fit-content' }}>
           <span style={{ ...tableType, color: secondary.cursorOrange, textDecoration: 'underline' }}>youtube.com</span>
-          <img src={externalLinkIcon} alt="" style={{ width: 15, height: 15 }} />
+          <img src={externalLinkIcon} alt="" style={{ width: 14.562, height: 14.562 }} />
         </div>
       </div>
     </div>
+    {/* Figma 4161:1270 — youtube panel @ calc(33.33%+218), top 296; clip 4161:1272 inset @ (0, 0), 1012×747 */}
     <div
       style={{
         position: 'absolute',
@@ -1193,11 +1326,22 @@ export const ModelHarness18Slide: Page = () => (
         borderRadius: '6px 0 0 0',
         padding: 50,
         boxSizing: 'border-box',
-        overflow: 'hidden',
       }}
     >
-      <div style={{ width: 1012, height: 747, overflow: 'hidden', borderRadius: '0 0 0 8px' }}>
-        <img src={harness18Youtube} alt="" style={{ width: '131.22%', height: '100%', marginLeft: '-10.87%' }} />
+      <div style={{ position: 'relative', width: 1218, height: 747 }}>
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: 1012,
+            height: 747,
+            overflow: 'hidden',
+            borderRadius: '8px 0 0 8px',
+          }}
+        >
+          <img src={harness18Youtube} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
+        </div>
       </div>
     </div>
   </LightSlide>

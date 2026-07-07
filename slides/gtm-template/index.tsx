@@ -54,6 +54,7 @@ import logoLimeLeaf from './assets/logo-wall/lime-leaf.svg';
 import logoLimeText from './assets/logo-wall/lime-text.svg';
 import section4161Slides from './section4161';
 import section4179Slides from './section4179';
+import section4208Slides from './section4208';
 
 const STYLE_ID = 'gtm-template-styles';
 if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
@@ -333,7 +334,11 @@ const LimeLogo = () => (
 );
 
 const LogoImage = ({ src, width, height }: { src: string; width: number; height: number }) => (
-  <img src={src} alt="" style={{ width, height, display: 'block', flexShrink: 0 }} />
+  <img
+    src={src}
+    alt=""
+    style={{ width, height, display: 'block', flexShrink: 0, objectFit: 'contain' }}
+  />
 );
 
 const LogoWallCell = ({ children }: { children: ReactNode }) => (
@@ -614,7 +619,11 @@ const ComparisonCard = ({
   >
     <div style={{ display: 'flex', flexDirection: 'column', gap: 50, flex: 1 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 40, width: '100%' }}>
-        <img src={icon} alt="" style={{ width: iconWidth, height: iconHeight, display: 'block' }} />
+        <img
+          src={icon}
+          alt=""
+          style={{ width: iconWidth, height: iconHeight, display: 'block', objectFit: 'contain' }}
+        />
         <p className="gtm-deck-text" style={{ ...deckType('m'), color: core.offBlack, margin: 0 }}>
           {title}
         </p>
@@ -1468,6 +1477,7 @@ export default [
   LogoWallSlide,
   SdlcSlide,
   SdlcDetailSlide,
+  ...section4208Slides,
   ...section4161Slides,
   ...section4179Slides,
   CtaSlide,

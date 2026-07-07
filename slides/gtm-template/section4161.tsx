@@ -11,6 +11,7 @@ import platformArrowUp from './assets/section4161/platform-arrow-up.svg';
 import platformArrowRight from './assets/section4161/platform-arrow-right.svg';
 import platformArrowLeft from './assets/section4161/platform-arrow-left.svg';
 import platformArrowRightSolid from './assets/section4161/platform-arrow-right-solid.svg';
+import cursorWordmarkBlack from './assets/cursor-wordmark-black.svg';
 import jointLogoCursor from './assets/section4161/joint-logo-cursor.svg';
 import jointLogoDivider from './assets/section4161/joint-logo-divider.svg';
 import openaiLogo from './assets/section4161/openai-logo.svg';
@@ -95,6 +96,31 @@ const milestoneLabelType = {
 
 const CARD_ROW_TOP = Math.round(1080 / 2 + 242.5 - 515 / 2);
 const UI_FEATURE_X = Math.round(1920 / 3);
+
+/** Brand marks — set height only; width derives from SVG aspect ratio. */
+const BrandLogo = ({
+  src,
+  alt,
+  height,
+  style,
+}: {
+  src: string;
+  alt: string;
+  height: number;
+  style?: CSSProperties;
+}) => (
+  <img
+    src={src}
+    alt={alt}
+    style={{
+      height,
+      width: 'auto',
+      display: 'block',
+      flexShrink: 0,
+      ...style,
+    }}
+  />
+);
 
 /** Figma 4161:2326–2391 — each curve variant is a segment of the same path with its own bbox. */
 const aiCurveBoxes = {
@@ -489,7 +515,7 @@ const ConnectorColumn = () => (
             flexShrink: 0,
           }}
         >
-          <img src={item.icon} alt="" style={{ width: 35.669, height: 35.669 }} />
+          <img src={item.icon} alt="" style={{ width: 35.669, height: 35.669, objectFit: 'contain' }} />
         </div>
         <p className="gtm-deck-text" style={{ ...deckType('m'), color: core.offBlack, fontSize: 35.669, lineHeight: 1.5 }}>
           {item.label}
@@ -650,30 +676,22 @@ export const JointLogoLockupSlide: Page = () => (
         gap: 40,
       }}
     >
-      <img src={jointLogoCursor} alt="Cursor" style={{ height: 127.088, width: 'auto' }} />
-      <img src={jointLogoDivider} alt="" style={{ height: 153.514, width: 2 }} />
-      <p
-        className="gtm-deck-text"
-        style={{
-          fontSize: 115.136,
-          lineHeight: 1.1,
-          letterSpacing: '-0.03em',
-          color: core.offBlack,
-          margin: 0,
-        }}
-      >
-        +LOGO+
-      </p>
+      <BrandLogo src={jointLogoCursor} alt="Cursor" height={127.088} />
+      <img src={jointLogoDivider} alt="" style={{ height: 153.514, width: 2, flexShrink: 0 }} />
+      {/* Figma 4161:3199 — partner lockup matches Cursor cap height (127.088) */}
+      <BrandLogo src={cursorWordmarkBlack} alt="Cursor" height={127.088} />
     </div>
   </div>
 );
 
 export const BriefNarrativeSlide: Page = () => (
   <LightSlide>
-    <img
+    {/* Figma 4161:3237 — logo @ (40, 40), 211.674×57; flush left with body copy */}
+    <BrandLogo
       src={openaiLogo}
       alt="OpenAI"
-      style={{ position: 'absolute', left: Math.round(1920 * 0.0833) - 14 - MARGIN + MARGIN, top: 69, width: 211.674, height: 57 }}
+      height={57}
+      style={{ position: 'absolute', left: MARGIN, top: 40 }}
     />
     <p
       className="gtm-deck-text"
@@ -785,16 +803,18 @@ export const CustomerQuoteSlide: Page = () => (
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        alignItems: 'flex-start',
       }}
     >
-      <div className="gtm-deck-text" style={{ display: 'flex', flexDirection: 'column', gap: 50 }}>
+      <div className="gtm-deck-text" style={{ display: 'flex', flexDirection: 'column', gap: 50, width: '100%' }}>
         <p style={{ ...deckType('l'), color: core.offBlack }}>
           &ldquo;It feels like we&apos;re in safe hands, with a team that&apos;s out ahead of the challenges we&apos;re
           thinking about too.&rdquo;
         </p>
         <p style={{ ...deckType('s'), color: bodyMuted }}>- Nathan Hunt, Developer Productivity</p>
       </div>
-      <img src={openaiLogoDark} alt="OpenAI" style={{ height: 46, width: 'auto' }} />
+      {/* Figma 4161:3309 — 170.827×46, left-aligned with quote block */}
+      <BrandLogo src={openaiLogoDark} alt="OpenAI" height={46} />
     </div>
     <div
       style={{
@@ -980,14 +1000,14 @@ export const TenKeyFeaturesSlide: Page = () => (
   </LightSlide>
 );
 
+/** Figma 4161:3230 — screenshot @ (158, 127), 1605×953, rounded top corners */
 export const AdminDashboardSlide: Page = () => (
-  <div style={{ ...lightSlide, background: core.offWhite }}>
+  <div style={{ ...lightSlide, background: '#edebe4' }}>
     <div
       style={{
         position: 'absolute',
-        left: '50%',
-        top: 103.5,
-        transform: 'translateX(-50%)',
+        left: 158,
+        top: 127,
         width: 1605,
         height: 953,
         borderRadius: '24px 24px 0 0',
@@ -997,7 +1017,7 @@ export const AdminDashboardSlide: Page = () => (
       <img
         src={adminDashboard}
         alt=""
-        style={{ position: 'absolute', height: '187.62%', width: '121.94%', left: '-10.75%', top: '-32.96%' }}
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
       />
     </div>
   </div>
@@ -1188,7 +1208,7 @@ export const SurfacesSlide: Page = () => {
                   gap: 16,
                 }}
               >
-                <img src={tile.icon} alt="" style={{ width: 46, height: 46 }} />
+                <img src={tile.icon} alt="" style={{ width: 46, height: 46, objectFit: 'contain' }} />
                 <p className="gtm-deck-text" style={{ ...deckType('m'), color: core.offBlack }}>
                   {tile.label}
                 </p>
@@ -1290,6 +1310,7 @@ export const ExtensibilitySlide: Page = () => (
           <span style={{ color: secondary.lavender }}>&quot;@cursor/sdk&quot;</span>
         </p>
       </div>
+      {/* Figma 4161:3439 — marketplace panel @ calc(33.33%+20), top 196; group 4161:3440 inset @ (120, 124), 361×300 */}
       <div
         style={{
           width: 600,
@@ -1300,7 +1321,13 @@ export const ExtensibilitySlide: Page = () => (
           position: 'relative',
         }}
       >
-        <img src={extensibilityMarketplace} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', left: 120, top: 124, width: 361, height: 300 }}>
+          <img
+            src={extensibilityMarketplace}
+            alt=""
+            style={{ display: 'block', width: '100%', height: '100%' }}
+          />
+        </div>
       </div>
       <div
         style={{
@@ -1381,6 +1408,11 @@ export const ExtensibilitySlide: Page = () => (
 );
 
 const adoptionSteps = ['Step 1', 'Step 2', 'Step 3', 'Step 4'] as const;
+const adoptionRuleTop = 334;
+const adoptionRuleHeight = 2;
+const adoptionMarkerSize = 15;
+/** Center 15px markers on the 2px timeline rule (matches SDLC timeline pattern in section4208). */
+const adoptionMarkerTop = adoptionRuleTop + adoptionRuleHeight / 2 - adoptionMarkerSize / 2;
 const adoptionMarkerLeft = [255, Math.round(1920 / 3) + 80, 960 + 225, Math.round((1920 * 5) / 6) + 50] as const;
 const adoptionCardLeft = [40, Math.round(1920 / 6) + 185, 970, Math.round((1920 * 2) / 3) + 155] as const;
 
@@ -1389,11 +1421,21 @@ export const FourStepPlanSlide: Page = () => (
     <p className="gtm-deck-text" style={{ position: 'absolute', left: MARGIN, top: MARGIN, ...deckType('xl'), color: core.offBlack }}>
       4 Step Adoption Plan
     </p>
-    <div style={{ position: 'absolute', left: MARGIN, top: 334, width: 1840, height: 2 }}>
+    <div style={{ position: 'absolute', left: MARGIN, top: adoptionRuleTop, width: 1840, height: adoptionRuleHeight }}>
       <img src={adoptionPlanRule} alt="" style={{ width: '100%', height: '100%' }} />
     </div>
     {adoptionMarkerLeft.map((left) => (
-      <div key={left} style={{ position: 'absolute', left, top: 334, width: 15, height: 15, background: secondary.green }} />
+      <div
+        key={left}
+        style={{
+          position: 'absolute',
+          left,
+          top: adoptionMarkerTop,
+          width: adoptionMarkerSize,
+          height: adoptionMarkerSize,
+          background: secondary.green,
+        }}
+      />
     ))}
     {adoptionSteps.map((step, index) => (
       <div
