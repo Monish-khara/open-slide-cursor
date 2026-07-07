@@ -7,7 +7,7 @@ import cursorGothicItalic from './assets/fonts/CursorGothic-Italic.otf';
 import cursorGothicRegular from './assets/fonts/CursorGothic-Regular.otf';
 import cursorLockup from './assets/cursor-lockup.svg';
 import dividerRule from './assets/divider.svg';
-import subAgentsVisual from './assets/sub-agents-visual.png';
+import subAgentsVisual from './assets/sub-agents-visual.gif';
 import illustration1 from './assets/dividers/1-blue.svg';
 import illustration2 from './assets/dividers/2-orange.svg';
 import illustration3 from './assets/dividers/3-lavender.svg';

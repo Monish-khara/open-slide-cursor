@@ -11,7 +11,7 @@ import dividerHarnessLeft from './assets/section4179/divider-harness-left.svg';
 import dividerHarnessRight from './assets/section4179/divider-harness-right.svg';
 import externalLinkIcon from './assets/section4179/external-link-icon.svg';
 import harness16Ui from './assets/section4179/harness-16-ui.png';
-import harness17Benchmark from './assets/section4179/harness-17-benchmark.png';
+import harness17Benchmark from './assets/section4179/harness-17-benchmark.jpg';
 import harness18Youtube from './assets/section4179/harness-18-youtube.png';
 import harness21ScreenshotInset from './assets/section4179/harness-21-screenshot-inset.png';
 import harness21ScreenshotMain from './assets/section4179/harness-21-screenshot-main.png';

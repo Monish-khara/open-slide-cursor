@@ -19,11 +19,11 @@ import logoNotionMark from './assets/section4208/logos/notion-mark.svg';
 import logoReplit from './assets/section4208/logos/replit.svg';
 import logoSnyk from './assets/section4208/logos/snyk.svg';
 import logoVscode from './assets/section4208/logos/vscode.svg';
-import agenticDividerArt from './assets/section4208/agentic-divider-art.png';
+import agenticDividerArt from './assets/section4208/agentic-divider-art.svg';
 import cardRule from './assets/section4208/card-rule.svg';
 import cloudAgentsSlide from './assets/section4208/cloud-agents-slide.png';
 import focusRule from './assets/section4208/focus-rule.svg';
-import platformDividerArt from './assets/section4208/platform-divider-art.png';
+import platformDividerArt from './assets/section4208/platform-divider-art.svg';
 import prodAi from './assets/section4208/prod-ai.png';
 import prodBreak from './assets/section4208/prod-break.png';
 import sdlcCursor from './assets/section4208/sdlc-cursor.png';
@@ -32,9 +32,9 @@ import sdlcFull from './assets/section4208/sdlc-full.png';
 import sdlcHalf from './assets/section4208/sdlc-half.png';
 import sdlcTimelineRule from './assets/section4208/sdlc-timeline-rule.svg';
 import sdlcTwoHalf from './assets/section4208/sdlc-two-half.png';
-import taaIconAgents from './assets/section4208/taa-icon-agents.png';
-import taaIconAsync from './assets/section4208/taa-icon-async.png';
-import taaIconTab from './assets/section4208/taa-icon-tab.png';
+import taaIconAgents from './assets/section4208/taa-icon-agents.svg';
+import taaIconAsync from './assets/section4208/taa-icon-async.svg';
+import taaIconTab from './assets/section4208/taa-icon-tab.svg';
 import taaMarkerLine from './assets/section4208/taa-marker-line.svg';
 
 const core = {
