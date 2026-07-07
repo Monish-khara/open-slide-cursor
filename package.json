@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "open-slide dev",
+    "dev:op": "bash scripts/dev-op.sh",
     "build": "open-slide build",
     "preview": "open-slide preview",
+    "preview:op": "bash scripts/preview-op.sh",
+    "setup:op": "bash scripts/setup-1password-env.sh",
     "sync:skills": "open-slide sync:skills",
     "postinstall": "patch-package"
   },

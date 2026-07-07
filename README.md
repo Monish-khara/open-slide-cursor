@@ -42,24 +42,55 @@ The Download menu includes **Export to Google Slides**, which captures the curre
 1. Create a [Google Cloud project](https://console.cloud.google.com/) and enable **Google Slides API** and **Google Drive API**.
 2. Configure the **OAuth consent screen** (External). Add your Google account as a **Test user**.
 3. Create an **OAuth client ID** (Web application). Set **Authorized JavaScript origins** to `http://localhost:5173` (and your production origin if you deploy).
+
+### Option A — local `.env`
+
 4. Copy `.env.example` to `.env` and set `VITE_GOOGLE_CLIENT_ID` to the client ID.
 
 ```bash
 cp .env.example .env
 # edit .env — paste your client ID
+npm run dev
 ```
 
-Restart the dev server after changing `.env`. The first export opens a Google sign-in/consent popup; the token is kept in memory for the session.
+### Option B — 1Password (multiple machines)
+
+Store the client ID in 1Password and inject it at dev time with `op run` (no committed `.env`).
+
+1. Install the CLI: `brew install 1password-cli`
+2. In the **1Password app**: Settings → Developer → **Integrate with 1Password CLI**
+3. One-time setup (reads `VITE_GOOGLE_CLIENT_ID` from your local `.env` if present):
+
+```bash
+npm run setup:op
+```
+
+4. Start dev with secrets from 1Password:
+
+```bash
+npm run dev:op
+```
+
+The committed [`.env.op`](./.env.op) references `op://Private/open-slide-gslides/credential`. Account selection defaults to **Monish Personal** via [`.op-account`](./.op-account) (`monishkhara@gmail.com`). Override with `export OP_ACCOUNT=other@email.com` if needed.
+
+On your work laptop: enable CLI integration, `git pull`, then `npm run dev:op` (the item syncs via your 1Password account).
+
+Restart the dev server after changing env vars. The first export opens a Google sign-in/consent popup; the token is kept in memory for the session.
 
 > Full OAuth testing requires your own client ID. Without it, the menu item will show an error when selected.
+
+> If `op run` does not expose the variable to Vite, run `op inject -i .env.op -o .env` and use `npm run dev` instead.
 
 ## Scripts
 
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Start the dev server with hot reload. |
+| `npm run dev:op` | Same as `dev`, but loads `VITE_GOOGLE_CLIENT_ID` from 1Password via `.env.op`. |
+| `npm run setup:op` | Create/update the `open-slide-gslides` item in 1Password (run once per machine). |
 | `npm run build` | Build a static bundle you can deploy. |
 | `npm run preview` | Preview the built bundle locally. |
+| `npm run preview:op` | Same as `preview`, with 1Password env injection. |
 
 ## Authoring a slide
 
