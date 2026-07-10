@@ -1,3 +1,4 @@
-# 1Password account for open-slide secrets (Monish Personal).
-# Override: export OP_ACCOUNT=other@email.com
-monishkhara@gmail.com
+# 1Password account for open-slide secrets (Monish Personal / monishkhara@gmail.com).
+# Email filter fails with op CLI; use account UUID from `op account list --format json`.
+# Override: export OP_ACCOUNT=other-account-uuid
+UQHU5Z2UQVH5FD5CDG3Q5HJLDU

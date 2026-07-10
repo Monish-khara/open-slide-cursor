@@ -159,6 +159,46 @@ const DiagramSlide = ({ src }: { src: string }) => (
   </LightSlide>
 );
 
+/**
+ * prod-ai.png and prod-break.png both bake in the "AI code gen" funnel label, but at
+ * different x positions (prod-ai 'A' left ≈233px, prod-break ≈239px — a 6px jump when
+ * advancing p35→p36). To stop the jump, cover the baked-in label on both with a box whose
+ * gradient matches the funnel's left-mouth fill (measured rgb(247,246,243) → rgb(244,243,238)),
+ * then render a single fixed HTML label. Coords are 1x canvas px, measured from prod-ai.png
+ * (cap-top y=523, 'A' left ≈233 → left 231 accounts for the glyph side-bearing).
+ */
+const AI_CODE_GEN_LEFT = 231;
+const AI_CODE_GEN_TOP = 523;
+
+const ProdFunnelSlide = ({ src }: { src: string }) => (
+  <LightSlide>
+    <img src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+    <div
+      style={{
+        position: 'absolute',
+        left: 228,
+        top: 510,
+        width: 226,
+        height: 58,
+        background: 'linear-gradient(90deg, rgb(247, 246, 243) 0%, rgb(244, 243, 238) 21%, rgb(244, 243, 238) 100%)',
+      }}
+    />
+    <p
+      className="gtm-deck-text"
+      style={{
+        position: 'absolute',
+        left: AI_CODE_GEN_LEFT,
+        top: AI_CODE_GEN_TOP,
+        ...deckType('s'),
+        color: core.offBlack,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      AI code gen
+    </p>
+  </LightSlide>
+);
+
 export const OwnSdlcSlide: Page = () => (
   <LightSlide>
     <p className="gtm-deck-text" style={{ position: 'absolute', left: MARGIN, top: MARGIN, width: 1723, ...deckType('l'), color: core.offBlack }}>
@@ -347,7 +387,16 @@ export const TaaSlide: Page = () => (
     <img
       src={taaMarkerLine}
       alt=""
-      style={{ position: 'absolute', left: 1275, top: 254, width: 1, height: 82, display: 'block' }}
+      style={{
+        position: 'absolute',
+        left: 1287,
+        top: 254,
+        width: 85.2677,
+        height: 24.0629,
+        transform: 'rotate(90deg)',
+        transformOrigin: 'top left',
+        display: 'block',
+      }}
     />
     <div style={{ position: 'absolute', left: MARGIN, top: 323, width: 1840 }}>
       <div style={{ display: 'flex', gap: 50, marginBottom: 21 }}>
@@ -402,8 +451,8 @@ export const SdlcTwoHalfSlide: Page = () => <DiagramSlide src={sdlcTwoHalf} />;
 export const SdlcFullSlide: Page = () => <DiagramSlide src={sdlcFull} />;
 export const SdlcCursorSlide: Page = () => <DiagramSlide src={sdlcCursor} />;
 export const SdlcHalfSlide: Page = () => <DiagramSlide src={sdlcHalf} />;
-export const ProdAiSlide: Page = () => <DiagramSlide src={prodAi} />;
-export const ProdBreakSlide: Page = () => <DiagramSlide src={prodBreak} />;
+export const ProdAiSlide: Page = () => <ProdFunnelSlide src={prodAi} />;
+export const ProdBreakSlide: Page = () => <ProdFunnelSlide src={prodBreak} />;
 
 export const section4208Slides = [
   OwnSdlcSlide,

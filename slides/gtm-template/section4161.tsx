@@ -11,14 +11,15 @@ import platformArrowUp from './assets/section4161/platform-arrow-up.png';
 import platformArrowRight from './assets/section4161/platform-arrow-right.svg';
 import platformArrowLeft from './assets/section4161/platform-arrow-left.svg';
 import platformArrowRightSolid from './assets/section4161/platform-arrow-right-solid.svg';
-import cursorWordmarkBlack from './assets/cursor-wordmark-black.svg';
-import jointLogoCursor from './assets/section4161/joint-logo-cursor.svg';
+import jointLogoCube from './assets/section4161/joint-logo-cube.svg';
+// joint-logo-cursor.svg holds the black "OpenAI" wordmark paths (Figma 4238:255).
+import jointLogoOpenai from './assets/section4161/joint-logo-cursor.svg';
 import jointLogoDivider from './assets/section4161/joint-logo-divider.svg';
 import openaiLogo from './assets/section4161/openai-logo.svg';
 import openaiLogoDark from './assets/section4161/openai-logo-dark.svg';
 import proofPointsVisual from './assets/section4161/proof-points-visual.png';
 import proofPointsRotated from './assets/section4161/proof-points-rotated.gif';
-import customerQuoteVisual from './assets/section4161/customer-quote-visual.gif';
+import customerQuoteVisual from './assets/section4161/customer-quote-visual.png';
 import heroMetricLines from './assets/section4161/hero-metric-lines.svg';
 import enterpriseControlsArt from './assets/section4161/enterprise-controls-art.svg';
 import featureIcon from './assets/section4161/feature-icon.svg';
@@ -663,24 +664,24 @@ export const PlatformOverviewSlide: Page = () => <PlatformDiagramSlide title="Pl
 
 export const ArchDiagramSlide: Page = () => <PlatformDiagramSlide title="Architecture Diagram" />;
 
+/** Figma 4238:232 — Origin cube (524,462) | divider (793) | OpenAI wordmark (925,476), centered ~540. */
 export const JointLogoLockupSlide: Page = () => (
   <div style={{ ...lightSlide, background: core.offWhite }}>
-    <div
-      style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 40,
-      }}
-    >
-      <BrandLogo src={jointLogoCursor} alt="Cursor" height={127.088} />
-      <img src={jointLogoDivider} alt="" style={{ height: 153.514, width: 2, flexShrink: 0 }} />
-      {/* Figma 4161:3199 — partner lockup matches Cursor cap height (127.088) */}
-      <BrandLogo src={cursorWordmarkBlack} alt="Cursor" height={127.088} />
-    </div>
+    <img
+      src={jointLogoCube}
+      alt="Origin"
+      style={{ position: 'absolute', left: 524, top: 462, width: 137, height: 155.858, display: 'block' }}
+    />
+    <img
+      src={jointLogoDivider}
+      alt=""
+      style={{ position: 'absolute', left: 793, top: 463.172, width: 2, height: 153.514, display: 'block' }}
+    />
+    <img
+      src={jointLogoOpenai}
+      alt="OpenAI"
+      style={{ position: 'absolute', left: 925, top: 476.384, width: 471.955, height: 127.089, display: 'block' }}
+    />
   </div>
 );
 
@@ -831,7 +832,7 @@ export const CustomerQuoteSlide: Page = () => (
       <img
         src={customerQuoteVisual}
         alt=""
-        style={{ position: 'absolute', height: '72.92%', width: '152.79%', left: '-26.4%', top: '13.58%' }}
+        style={{ position: 'absolute', height: '72.92%', width: '152.79%', maxWidth: 'none', left: '-26.4%', top: '13.58%' }}
       />
     </div>
   </LightSlide>

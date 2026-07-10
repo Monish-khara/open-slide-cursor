@@ -1,9 +1,43 @@
+diff --git a/node_modules/@open-slide/core/dist/config-CU_NISD6.js b/node_modules/@open-slide/core/dist/config-CU_NISD6.js
+index 3a8de82..4ac904b 100644
+--- a/node_modules/@open-slide/core/dist/config-CU_NISD6.js
++++ b/node_modules/@open-slide/core/dist/config-CU_NISD6.js
+@@ -2982,6 +2982,29 @@ function registerUpdateRoutes(server, ctx) {
+ 			json(res, 500, { error: err instanceof Error ? err.message : "update failed" });
+ 		}
+ 	});
++	server.middlewares.use("/__open-external", async (req, res, next) => {
++		if ((req.method ?? "GET") !== "POST") return next();
++		const reqUrl = new URL(req.url ?? "/", "http://local");
++		const target = reqUrl.searchParams.get("url") ?? "";
++		if (!/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(target)) {
++			return json(res, 400, { error: "invalid url" });
++		}
++		const platform = process.platform;
++		const cmd = platform === "darwin" ? "open" : platform === "win32" ? "cmd" : "xdg-open";
++		const args = platform === "darwin"
++			? ["-a", "Google Chrome", target]
++			: platform === "win32"
++				? ["/c", "start", "chrome", target]
++				: [target];
++		try {
++			const child = spawn(cmd, args, { stdio: "ignore", detached: true });
++			child.on("error", () => {});
++			child.unref();
++			json(res, 200, { ok: true });
++		} catch (err) {
++			json(res, 500, { error: err instanceof Error ? err.message : "failed to open" });
++		}
++	});
+ }
+ 
+ //#endregion
 diff --git a/node_modules/@open-slide/core/src/app/lib/export-gslides.ts b/node_modules/@open-slide/core/src/app/lib/export-gslides.ts
 new file mode 100644
-index 0000000..89da0b3
+index 0000000..e18dbe9
 --- /dev/null
 +++ b/node_modules/@open-slide/core/src/app/lib/export-gslides.ts
-@@ -0,0 +1,460 @@
+@@ -0,0 +1,497 @@
 +import { createElement } from 'react';
 +import { createRoot } from 'react-dom/client';
 +import { designToCssVars } from './design';
@@ -74,27 +108,37 @@ index 0000000..89da0b3
 +  const pageCount = pages.length;
 +  const pngBlobs: Blob[] = [];
 +
++  // Authenticate first, while the user's click is still fresh — the Google popup
++  // is blocked if it opens after the (slow) multi-page capture below.
++  onProgress?.({ phase: 'auth', percent: 5, message: 'Signing in to Google…' });
++  const token = await requestGoogleAccessToken(clientId);
++
 +  for (let i = 0; i < pageCount; i++) {
 +    const Page = pages[i];
 +    if (!Page) throw new Error(`Page ${i + 1} not found`);
 +
-+    const percent = Math.round(5 + ((i + 1) / pageCount) * 20);
++    const percent = Math.round(10 + ((i + 1) / pageCount) * 20);
 +    onProgress?.({
 +      phase: 'capturing',
 +      percent,
 +      message: `Capturing ${i + 1} / ${pageCount}…`,
 +    });
 +
-+    try {
-+      pngBlobs.push(await capturePageAsPng(slide, Page, i, pageCount));
-+    } catch (err) {
-+      const detail = err instanceof Error ? err.message : String(err);
-+      throw new Error(`Failed to capture page ${i + 1}: ${detail}`);
++    let captured: Blob | null = null;
++    let lastErr: unknown = null;
++    for (let attempt = 0; attempt < 3 && !captured; attempt++) {
++      try {
++        captured = await capturePageAsPng(slide, Page, i, pageCount);
++      } catch (err) {
++        lastErr = err;
++        await sleep(250);
++      }
 +    }
++    if (!captured) {
++      throw new Error(`Failed to capture page ${i + 1}: ${describeError(lastErr)}`);
++    }
++    pngBlobs.push(captured);
 +  }
-+
-+  onProgress?.({ phase: 'auth', percent: 28, message: 'Signing in to Google…' });
-+  const token = await requestGoogleAccessToken(clientId);
 +
 +  onProgress?.({ phase: 'creating', percent: 35, message: 'Creating presentation…' });
 +  const presentation = await createPresentation(token, slideId);
@@ -214,13 +258,13 @@ index 0000000..89da0b3
 +    await waitForDataWaitfor(container);
 +
 +    freezeForCapture(host);
++    await waitForImages(host);
 +    const { toBlob } = await import('html-to-image');
 +    const blob = await toBlob(host, {
 +      width: SLIDE_W,
 +      height: SLIDE_H,
 +      pixelRatio: CAPTURE_PIXEL_RATIO,
 +      backgroundColor: '#ffffff',
-+      cacheBust: true,
 +    });
 +    if (!blob) throw new Error(`Failed to capture page ${pageIndex + 1}`);
 +    return blob;
@@ -229,6 +273,33 @@ index 0000000..89da0b3
 +    container.remove();
 +    captureStyle.remove();
 +  }
++}
++
++function describeError(err: unknown): string {
++  if (err instanceof Error) return err.message;
++  if (typeof Event !== 'undefined' && err instanceof Event) {
++    const target = err.target as HTMLImageElement | HTMLScriptElement | null;
++    const src = target && 'src' in target ? target.src : null;
++    return src ? `resource failed to load: ${src}` : `resource load error (${err.type})`;
++  }
++  return String(err);
++}
++
++async function waitForImages(root: HTMLElement): Promise<void> {
++  const imgs = Array.from(root.querySelectorAll('img'));
++  await Promise.all(
++    imgs.map((img) => {
++      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
++      return new Promise<void>((resolve, reject) => {
++        img.addEventListener('load', () => resolve(), { once: true });
++        img.addEventListener(
++          'error',
++          () => reject(new Error(`Image failed to load: ${img.currentSrc || img.src || 'unknown src'}`)),
++          { once: true },
++        );
++      });
++    }),
++  );
 +}
 +
 +function freezeForCapture(root: HTMLElement): void {
@@ -465,7 +536,7 @@ index 0000000..89da0b3
 +  });
 +}
 diff --git a/node_modules/@open-slide/core/src/app/routes/slide.tsx b/node_modules/@open-slide/core/src/app/routes/slide.tsx
-index 07aabf0..acc76f1 100644
+index 07aabf0..828be30 100644
 --- a/node_modules/@open-slide/core/src/app/routes/slide.tsx
 +++ b/node_modules/@open-slide/core/src/app/routes/slide.tsx
 @@ -59,6 +59,7 @@ import { SlideTransitionLayer } from '../components/slide-transition-layer';
@@ -476,12 +547,39 @@ index 07aabf0..acc76f1 100644
  import { exportSlideAsImagePptx } from '../lib/export-pptx';
  import { remapNotesSessionCacheAfterReorder } from '../lib/inspector/use-notes';
  import type { SlideModule } from '../lib/sdk';
-@@ -457,6 +458,57 @@ export function Slide() {
+@@ -457,6 +458,84 @@ export function Slide() {
      }
    };
  
 +  const exportGoogleSlides = async () => {
 +    if (!slide || exporting) return;
++
++    // Cursor's embedded browser (Electron) can't complete the Google sign-in popup.
++    // Bounce the deck to the system Chrome browser so the user can export from there.
++    if (/Electron/i.test(navigator.userAgent)) {
++      const deckUrl = window.location.href;
++      const toastId = `gslides-open-chrome-${slideId}`;
++      try {
++        const res = await fetch(`/__open-external?url=${encodeURIComponent(deckUrl)}`, {
++          method: 'POST',
++        });
++        if (!res.ok) throw new Error(await res.text());
++        toast.success('Opened this deck in Chrome', {
++          id: toastId,
++          duration: 9000,
++          description: 'Switch to Chrome and click "Export to Google Slides" there to finish.',
++        });
++      } catch {
++        void navigator.clipboard?.writeText(deckUrl).catch(() => undefined);
++        toast.error('Open this deck in Chrome to export', {
++          id: toastId,
++          duration: 9000,
++          description: 'Deck URL copied to clipboard — paste it into Chrome, then export there.',
++        });
++      }
++      return;
++    }
++
 +    setExporting(true);
 +    const toastId = `gslides-export-${slideId}`;
 +    const pageCount = slide.default?.length ?? 0;
@@ -534,7 +632,7 @@ index 07aabf0..acc76f1 100644
    const exportMenuItems = (
      <>
        <DropdownMenuItem disabled={exporting} onSelect={exportHtml}>
-@@ -472,6 +524,10 @@ export function Slide() {
+@@ -472,6 +551,10 @@ export function Slide() {
          <FileImage />
          {t.slide.exportAsImagePptx}
        </DropdownMenuItem>

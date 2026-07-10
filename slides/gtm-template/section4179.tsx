@@ -168,59 +168,89 @@ const TableRow = ({ row, showAllColumns = true }: { row: ModelRow; showAllColumn
   </>
 );
 
-const FullWidthModelTable = ({ rows }: { rows: ModelRow[] }) => (
-  <div style={{ position: 'absolute', left: MARGIN, top: 330, width: 1840 }}>
-    <div style={{ display: 'flex', height: 69 }}>
-      <div
-        style={{
-          width: 466,
-          background: core.offWhite,
-          borderRadius: '10px 0 0 0',
-          padding: 20,
-          boxSizing: 'border-box',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <p className="gtm-deck-text" style={{ ...tableType, color: core.offBlack }}>
-          Model
-        </p>
-      </div>
-      <div
-        style={{
-          flex: 1,
-          background: core.offWhite,
-          borderRadius: '0 10px 0 0',
-          padding: '20px 0 20px 20px',
-          boxSizing: 'border-box',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 156,
-        }}
-      >
-        {['% Resolved', 'Avg. $', 'Org', 'Date', 'Agent'].map((label) => (
-          <p
-            key={label}
-            className="gtm-deck-text"
-            style={{ ...tableType, color: core.offBlack, width: 154, whiteSpace: 'nowrap' }}
-          >
-            {label}
+const TABLE_BODY_H = 631;
+const TABLE_ROW_TOP = 20;
+
+const FullWidthModelTable = ({ rows }: { rows: ModelRow[] }) => {
+  const pitch = (TABLE_BODY_H - TABLE_ROW_TOP) / rows.length;
+  return (
+    <div style={{ position: 'absolute', left: MARGIN, top: 330, width: 1840 }}>
+      <div style={{ display: 'flex', height: 69 }}>
+        <div
+          style={{
+            width: 466,
+            background: core.offWhite,
+            borderRadius: '10px 0 0 0',
+            padding: 20,
+            boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <p className="gtm-deck-text" style={{ ...tableType, color: core.offBlack }}>
+            Model
           </p>
+        </div>
+        <div
+          style={{
+            flex: 1,
+            background: core.offWhite,
+            borderRadius: '0 10px 0 0',
+            padding: '20px 0',
+            boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 156,
+          }}
+        >
+          {['% Resolved', 'Avg. $', 'Org', 'Date', 'Agent'].map((label) => (
+            <p
+              key={label}
+              className="gtm-deck-text"
+              style={{ ...tableType, color: core.offBlack, width: 154, whiteSpace: 'nowrap' }}
+            >
+              {label}
+            </p>
+          ))}
+        </div>
+      </div>
+      <div style={{ position: 'relative', background: tableTint, height: TABLE_BODY_H }}>
+        {rows.map((row, index) => (
+          <div key={`${row.name}-${index}`}>
+            <div
+              style={{
+                position: 'absolute',
+                left: 20,
+                top: TABLE_ROW_TOP + index * pitch,
+                width: 1800,
+                height: pitch,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 36,
+              }}
+            >
+              <TableRow row={row} />
+            </div>
+            {index < rows.length - 1 ? (
+              <img
+                src={tableRule}
+                alt=""
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: TABLE_ROW_TOP + (index + 1) * pitch,
+                  width: '100%',
+                  height: 1,
+                  display: 'block',
+                }}
+              />
+            ) : null}
+          </div>
         ))}
       </div>
     </div>
-    <div style={{ position: 'relative', background: tableTint, minHeight: 631, padding: '20px 20px 0' }}>
-      {rows.map((row, index) => (
-        <div key={`${row.name}-${index}`}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 36, padding: '10px 0' }}>
-            <TableRow row={row} />
-          </div>
-          {index < rows.length - 1 ? <img src={tableRule} alt="" style={{ width: '100%', height: 1, display: 'block' }} /> : null}
-        </div>
-      ))}
-    </div>
-  </div>
-);
+  );
+};
 
 const ModelPickerPanel = () => {
   const models = [
@@ -532,7 +562,6 @@ export const ModelSelectionCostSlide: Page = () => (
           display: 'flex',
           alignItems: 'center',
           gap: 156,
-          paddingLeft: 20,
         }}
       >
         {['% Resolved', 'Avg. $', 'Org', 'Date', 'Agent'].map((label) => (
@@ -545,13 +574,15 @@ export const ModelSelectionCostSlide: Page = () => (
           </p>
         ))}
       </div>
-      <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 34 }}>
-        {modelRows.slice(0, 10).map((row, index) => (
+      <div style={{ marginTop: 21, display: 'flex', flexDirection: 'column', gap: 34 }}>
+        {modelRows.map((row, index) => (
           <div key={`${row.name}-${index}`}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <TableRow row={row} />
             </div>
-            {index < 9 ? <img src={tableRule} alt="" style={{ width: '100%', height: 1, marginTop: 14 }} /> : null}
+            {index < modelRows.length - 1 ? (
+              <img src={tableRule} alt="" style={{ width: '100%', height: 1, marginTop: 34 }} />
+            ) : null}
           </div>
         ))}
       </div>
@@ -725,7 +756,7 @@ const RulesSkillsFeatureCard = ({
     <p className="gtm-deck-text" style={{ ...rulesSkillsCardType, color: core.midGray }}>
       {subtitle}
     </p>
-    <p className="gtm-deck-text" style={{ ...rulesSkillsCardType, color: core.midGray, marginTop: 24 }}>
+    <p className="gtm-deck-text" style={{ ...rulesSkillsCardType, color: core.midGray, marginTop: 32 }}>
       {body}
     </p>
   </div>

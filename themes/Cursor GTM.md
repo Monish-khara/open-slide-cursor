@@ -6,6 +6,24 @@ mode: dark
 
 # Cursor GTM
 
+## Slide types — background sets the job
+
+Background colour is **semantic**, not decorative. Choose it from what the slide is for, and keep the deck mostly white with black and colour used sparingly for rhythm.
+
+| Background | Token(s) | Use for |
+| ---------- | -------- | ------- |
+| **White / off-white** | `core.pureWhite`, `core.offWhite`, `core.offWhite60` (cards) | **Body slides — the default.** The workhorse: content, comparisons, tables, diagrams, feature grids, timelines, logo walls. The large majority of any deck. |
+| **Black** | `core.offBlack` | **High-emphasis moments.** The title, big statements, and pivotal "this matters" slides — e.g. the Statement slide (p14) and Future State (p16), plus the title (p1) and CTA. Use sparingly for weight. |
+| **Colored (full-bleed)** | `secondary.*` | **Section dividers only.** One vibrant canvas + line illustration to open a topic (see **Section divider**). Never run body content on a colored field. |
+
+Guidance for authoring / prompt-to-deck:
+
+- **Default to white.** If a slide carries information (copy, data, UI, diagrams), it's a body slide → white.
+- **Black earns its place.** Reserve off-black for a handful of high-impact beats — a mission/statement line, a future-state moment, the opener, the close. If every slide is black, none of them land.
+- **Colour = dividers.** A colored background signals "new section starts here," never "here is some content." Each divider gets a unique secondary hue + illustration; body slides do not borrow these hues as backgrounds.
+- **Section divider copy.** Dividers signal a new chapter — they do **not** say "Section Divider." The two-line Super stack is a **heading + subheading**: line 1 in `core.offWhite` (the section topic), line 2 in `rgba(237, 236, 232, 0.5)` (a short framing line). Example: heading "What is the SDK", subheading "A quick guide" — not heading "Section Divider", subheading "What is the SDK".
+- **Type colour still follows Color rules** regardless of background: core greys only for text; secondary palette only for non-text visuals.
+
 ## Palette
 
 Semantic roles map to **core** neutrals. **Cursor Orange** lives only in `secondary` — do not duplicate.
@@ -238,6 +256,8 @@ const TitleBlock = ({
 
 Secondary palette as **full-slide background** — not for text highlights. Each variant has a unique line illustration anchored in the lower ~56% of the canvas.
 
+**Copy:** Never render the literal words "Section Divider." The Super two-line block is the section **heading** (off-white) and **subheading** (50% off-white). Pick a short subheading that frames what follows — e.g. "What is the SDK" / "A quick guide", "Enterprise" / "Cursor Organizations", "Cursor's Advantage" / "The Harness".
+
 | # | Background token | Hex       | Figma node   |
 | - | ---------------- | --------- | ------------ |
 | 1 | blue             | `#2268ff` | 3781:11629   |
@@ -250,10 +270,16 @@ Secondary palette as **full-slide background** — not for text highlights. Each
 All section dividers live in the **`gtm-template`** deck (`slides/gtm-template/index.tsx`) as pages 3–8 after title and agenda.
 
 ```tsx
-const SectionDividerBlock = ({ title, topic }: { title: string; topic: string }) => (
+const SectionDividerBlock = ({
+  heading,
+  subheading,
+}: {
+  heading: string;
+  subheading: string;
+}) => (
   <div className="gtm-deck-text" style={{ position: 'absolute', left: 40, top: 40 }}>
-    <p style={{ ...deckType('super'), color: core.offWhite }}>{title}</p>
-    <p style={{ ...deckType('super'), color: 'rgba(237, 236, 232, 0.5)' }}>{topic}</p>
+    <p style={{ ...deckType('super'), color: core.offWhite }}>{heading}</p>
+    <p style={{ ...deckType('super'), color: 'rgba(237, 236, 232, 0.5)' }}>{subheading}</p>
   </div>
 );
 
